@@ -219,7 +219,7 @@ const AdminProcurement = ({
       const response = await fetch(`${baseurl}/api/procurement/update/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: JSON.stringify(itemsArr) })
+        body: JSON.stringify({ items: JSON.stringify(itemsArr), negotiationtype: 'admin' })
       });
       if (response.ok) {
         window.location.reload();
@@ -268,7 +268,7 @@ const AdminProcurement = ({
       const response = await fetch(`${baseurl}/api/procurement/update/${multiEditOrder.procurement_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: JSON.stringify(itemsArr) })
+        body: JSON.stringify({ items: JSON.stringify(itemsArr), negotiationtype: 'admin' })
       });
       if (response.ok) {
         setMultiEditOpen(false);
@@ -601,7 +601,9 @@ const AdminProcurement = ({
                     )}
                   </TableCell>
                   <TableCell>{row.order_date}</TableCell>
-                  <TableCell>{row.driver_name || "—"}</TableCell>
+                  <TableCell> {row.driver
+                          ? `${row.driver.first_name || ""} ${row.driver.last_name || ""}`.trim()
+                          : "N/A"}</TableCell>
                   <TableCell>
                     <StatusChip status={row.status} />
                   </TableCell>

@@ -607,7 +607,7 @@ const ProcurementOrderManagement = () => {
       const response = await fetch(`${baseurl}/api/procurement/update/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: JSON.stringify(itemsArr) })
+        body: JSON.stringify({ items: JSON.stringify(itemsArr), negotiationtype: 'admin' })
       });
       if (response.ok) {
         window.location.reload();
@@ -656,7 +656,7 @@ const ProcurementOrderManagement = () => {
       const response = await fetch(`${baseurl}/api/procurement/update/${multiEditOrder.procurement_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: JSON.stringify(itemsArr) })
+        body: JSON.stringify({ items: JSON.stringify(itemsArr), negotiationtype: 'admin' })
       });
       if (response.ok) {
         setMultiEditOpen(false);
@@ -767,7 +767,7 @@ const ProcurementOrderManagement = () => {
                           return (
                             <Typography key={idx} variant="body2" noWrap sx={{ maxWidth: 180 }}>
                               {product ? product.product_name || product.name : 'Product'}
-                              {` (${item.quantity} ${product ? product.unit : ''}/kg)`}
+                              {` (${item.quantity} 1/kg)`}
                             </Typography>
                           );
                         })}
@@ -855,57 +855,6 @@ const ProcurementOrderManagement = () => {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-        <Dialog open={multiEditOpen} onClose={() => setMultiEditOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Edit Product Prices</DialogTitle>
-          <DialogContent>
-            {multiEditOrder && multiEditOrder.items.map((item, idx) => {
-              const product = products.find(p => p.pid === item.product_id || p.id === item.product_id);
-              return (
-                <Box key={item.product_id} sx={{ mb: 2 }}>
-                  <Typography variant="body2">
-                    {product ? product.product_name || product.name : 'Product'} ({item.quantity} {product ? product.unit : ''}/kg)
-                  </Typography>
-                  <TextField
-                    value={multiEditAmounts[item.product_id] || ''}
-                    onChange={e => handleMultiEditChange(item.product_id, e.target.value)}
-                    size="small"
-                    type="number"
-                    inputProps={{ min: 0 }}
-                    sx={{ mt: 1 }}
-                  />
-                </Box>
-              );
-            })}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setMultiEditOpen(false)} color="primary">Cancel</Button>
-            <Button onClick={handleMultiEditSave} color="success" variant="contained">Save</Button>
-          </DialogActions>
-        </Dialog>
-        <Dialog open={imageModalOpen} onClose={handleCloseImageModal} maxWidth="sm" fullWidth>
-          <DialogTitle>Driver Uploaded Image</DialogTitle>
-          <DialogContent>
-            {imageLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-                <span>Loading...</span>
-              </Box>
-            ) : imageError ? (
-              <Typography color="error">{imageError}</Typography>
-            ) : imageUrl ? (
-              <Box sx={{ textAlign: 'center' }}>
-                <img src={imageUrl} alt="Driver Upload" style={{ maxWidth: '100%', maxHeight: 400 }} />
-              </Box>
-            ) : null}
-          </DialogContent>
-          <DialogActions>
-            {modalOrder && modalOrder.status === 'Picked' && (
-              <Button onClick={handleMarkAsReceived} color="success" variant="contained">
-                Mark as Received
-              </Button>
-            )}
-            <Button onClick={handleCloseImageModal} color="primary">Close</Button>
-          </DialogActions>
-        </Dialog>
       </Paper>
     );
   };
@@ -1127,6 +1076,60 @@ const ProcurementOrderManagement = () => {
           showLastButton
         />
       </Box>
+
+      {/* Multi-Edit Modal moved here to prevent re-mounting issues */}
+      <Dialog open={multiEditOpen} onClose={() => setMultiEditOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit Product Prices</DialogTitle>
+        <DialogContent>
+          {multiEditOrder && multiEditOrder.items.map((item, idx) => {
+            const product = products.find(p => p.pid === item.product_id || p.id === item.product_id);
+            return (
+              <Box key={item.product_id} sx={{ mb: 2 }}>
+                <Typography variant="body2">
+                  {product ? product.product_name || product.name : 'Product'} ({item.quantity} 1/kg)
+                </Typography>
+                <TextField
+                  value={multiEditAmounts[item.product_id] || ''}
+                  onChange={e => handleMultiEditChange(item.product_id, e.target.value)}
+                  size="small"
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  sx={{ mt: 1 }}
+                />
+              </Box>
+            );
+          })}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setMultiEditOpen(false)} color="primary">Cancel</Button>
+          <Button onClick={handleMultiEditSave} color="success" variant="contained">Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={imageModalOpen} onClose={handleCloseImageModal} maxWidth="sm" fullWidth>
+        <DialogTitle>Driver Uploaded Image</DialogTitle>
+        <DialogContent>
+          {imageLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+              <span>Loading...</span>
+            </Box>
+          ) : imageError ? (
+            <Typography color="error">{imageError}</Typography>
+          ) : imageUrl ? (
+            <Box sx={{ textAlign: 'center' }}>
+              <img src={imageUrl} alt="Driver Upload" style={{ maxWidth: '100%', maxHeight: 400 }} />
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          {modalOrder && modalOrder.status === 'Picked' && (
+            <Button onClick={handleMarkAsReceived} color="success" variant="contained">
+              Mark as Received
+            </Button>
+          )}
+          <Button onClick={handleCloseImageModal} color="primary">Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

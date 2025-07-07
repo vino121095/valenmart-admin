@@ -370,19 +370,31 @@ const AdminProcurement = ({
             Assign
           </Button>
         );
-        case "Waiting for Approval":
-          return (
+      case "Waiting for Approval":
+        return (
+          <Stack direction="row" spacing={1}>
             <Button
               size="small"
               color="warning"
               variant="contained"
+              startIcon={<LocalShipping fontSize="small" />}
+              onClick={() => handleAssign(orderId)}
+              sx={{ fontSize: "0.75rem", textTransform: "none" }}
+            >
+              Edit Assign
+            </Button>
+            <Button
+              size="small"
+              color="inherit"
+              variant="outlined"
               startIcon={<ReceiptLong fontSize="small" />}
               onClick={() => handleView(orderId)}
               sx={{ fontSize: "0.75rem", textTransform: "none" }}
             >
               View
             </Button>
-          );
+          </Stack>
+        );
       case "Approved":
         return (
           <Button

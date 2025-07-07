@@ -294,6 +294,7 @@ const DriverTask = () => {
                   <MenuItem value="12:00 PM - 02:00 PM">12:00 PM - 02:00 PM</MenuItem>
                   <MenuItem value="02:00 PM - 04:00 PM">02:00 PM - 04:00 PM</MenuItem>
                   <MenuItem value="04:00 PM - 06:00 PM">04:00 PM - 06:00 PM</MenuItem>
+                  <MenuItem value="04:00 PM - 06:00 PM">07:00 PM - 08:00 PM</MenuItem>
                 </Select>
               </Grid>
               <Grid item xs={12} md={3}>

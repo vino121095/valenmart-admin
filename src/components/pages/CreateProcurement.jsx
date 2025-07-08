@@ -162,11 +162,11 @@ const CreateProcurement = () => {
             });
 
             const data = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to create procurement order');
             }
-            
+
             setSuccess('Procurement order created successfully!');
             // Reset form
             setExpectedDate('');
@@ -378,7 +378,11 @@ const CreateProcurement = () => {
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    <TextField value={item.unitPrice} disabled fullWidth />
+                                    <TextField
+                                        value={item.unitPrice}
+                                        onChange={(e) => handleProductChange(index, 'unitPrice', Number(e.target.value))}
+                                        fullWidth
+                                    />
                                 </TableCell>
                                 <TableCell>
                                     ₹{getTotal(item.quantity, item.unitPrice).toFixed(2)}
@@ -412,15 +416,15 @@ const CreateProcurement = () => {
                 {/* Action Buttons */}
                 <Box mt={4} display="flex" gap={2} justifyContent="flex-end">
                     <Button variant="outlined" onClick={() => window.history.back()}>Cancel</Button>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         color="warning"
                         disabled={loading}
                     >
                         Save as Draft
                     </Button>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         color="primary"
                         onClick={handleSubmit}
                         disabled={loading || !selectedVendor || !expectedDate || productList.some(item => !item.productId || item.quantity <= 0)}

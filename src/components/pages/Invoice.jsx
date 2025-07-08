@@ -9,6 +9,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import baseurl from '../ApiService/ApiService';
 
 const statusColor = {
   'Delivered': 'success',
@@ -32,11 +33,11 @@ export default function InvoiceManagement() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const ordersRes = await fetch('http://localhost:8000/api/order/all');
+        const ordersRes = await fetch(baseurl + '/api/order/all');
         const ordersData = await ordersRes.json();
         setOrders(ordersData.data);
 
-        const itemsRes = await fetch('http://localhost:8000/api/order-items/all');
+        const itemsRes = await fetch(baseurl + '/api/order-items/all');
         const itemsData = await itemsRes.json();
         setOrderItems(itemsData.data);
       } catch (err) {

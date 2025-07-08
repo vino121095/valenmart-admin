@@ -20,12 +20,12 @@ import {
   Select,
   FormControl,
   InputLabel,
-  MenuItem as SelectItem
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import baseurl from '../ApiService/ApiService';
 
 const statusColor = {
   Active: 'success',
@@ -49,8 +49,8 @@ export default function CustomerManagement() {
     const fetchData = async () => {
       try {
         const [customerRes, orderRes] = await Promise.all([
-          fetch('http://localhost:8000/api/customer-profile/all'),
-          fetch('http://localhost:8000/api/order/all')
+          fetch(baseurl + '/api/customer-profile/all'),
+          fetch(baseurl + '/api/order/all')
         ]);
 
         if (!customerRes.ok || !orderRes.ok) throw new Error('Failed to fetch data');
@@ -140,7 +140,7 @@ export default function CustomerManagement() {
     const confirmDelete = window.confirm("Are you sure you want to delete this customer?");
     if (!confirmDelete) return;
 
-    fetch(`http://localhost:8000/api/customer-profile/delete/${customerId}`, {
+    fetch(`${baseurl}/api/customer-profile/delete/${customerId}`, {
       method: 'DELETE',
     })
       .then((res) => {
@@ -194,10 +194,10 @@ export default function CustomerManagement() {
             value={statusFilter}
             onChange={handleStatusFilterChange}
           >
-            <SelectItem value="">All</SelectItem>
-            <SelectItem value="Active">Active</SelectItem>
-            <SelectItem value="Inactive">Inactive</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="Active">Active</MenuItem>
+            <MenuItem value="Inactive">Inactive</MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
           </Select>
         </FormControl>
 

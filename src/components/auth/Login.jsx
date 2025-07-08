@@ -230,13 +230,13 @@ const LoginPage = () => {
               }}
             />
             
-            <Typography 
+            {/* <Typography 
               variant="body2" 
               align="right" 
               sx={{ mt: 1, mb: 2, color: 'primary.main', cursor: 'pointer' }}
             >
               Forgot Password?
-            </Typography>
+            </Typography> */}
             
             <Button
               type="submit"

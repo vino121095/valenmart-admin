@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { green, yellow } from '@mui/material/colors';
+import baseurl from '../ApiService/ApiService';
 
 export default function CustomerManagementView1() {
   const [orders, setOrders] = useState([]);
@@ -24,7 +25,7 @@ export default function CustomerManagementView1() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/customer-profile/all')
+    fetch(`${baseurl}/api/customer-profile/all`)
       .then((res) => res.json())
       .then((data) => {
         const customerList = data.data || [];
@@ -40,7 +41,7 @@ export default function CustomerManagementView1() {
 
   useEffect(() => {
     // Fetch all orders, then filter by customer_id
-    fetch('http://localhost:8000/api/order/all')
+    fetch(`${baseurl}/api/order/all`)
       .then((res) => res.json())
       .then((data) => {
         const allOrders = data.data || [];

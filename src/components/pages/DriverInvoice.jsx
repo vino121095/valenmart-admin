@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import baseurl from '../ApiService/ApiService';
 
 const statusColor = {
     'Active': 'success',
@@ -92,7 +93,7 @@ function DriverRow({ driver, driverDeliveries, formatCurrency, onPaymentComplete
             // Get delivery IDs that need to be marked as paid
             const deliveryIds = filteredDeliveries.map(delivery => delivery.id);
 
-            const response = await fetch('http://localhost:8000/api/deliveries/mark-paid', {
+            const response = await fetch(baseurl + '/api/deliveries/mark-paid', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ function DriverRow({ driver, driverDeliveries, formatCurrency, onPaymentComplete
             }
 
             const result = await response.json();
-            console.log('Payment recorded successfully:', result);
+            // console.log('Payment recorded successfully:', result);
 
             // Call parent callback
             onPaymentComplete(driver.did, deliveryIds);
@@ -335,14 +336,14 @@ export default function DriverInvoice() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const deliveriesRes = await fetch('http://localhost:8000/api/delivery/all');
+            const deliveriesRes = await fetch(baseurl + '/api/delivery/all');
             if (!deliveriesRes.ok) {
                 throw new Error('Failed to fetch deliveries');
             }
             const deliveriesData = await deliveriesRes.json();
             setDeliveries(deliveriesData);
 
-            const driversRes = await fetch('http://localhost:8000/api/driver-details/all');
+            const driversRes = await fetch(baseurl + '/api/driver-details/all');
             if (!driversRes.ok) {
                 throw new Error('Failed to fetch drivers');
             }
@@ -430,7 +431,7 @@ export default function DriverInvoice() {
         deliveries.reduce((total, delivery) => total + (parseFloat(delivery.charges) || 0), 0);
 
     const handlePaymentComplete = (driverId, deliveryIds) => {
-        console.log(`Payment completed for driver ${driverId}, deliveries: ${deliveryIds}`);
+        // console.log(`Payment completed for driver ${driverId}, deliveries: ${deliveryIds}`);
         // Data will be refreshed automatically via refreshData callback
     };
 

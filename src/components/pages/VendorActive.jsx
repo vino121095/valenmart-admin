@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography, Grid, Paper, Avatar, Button, Divider, Rating } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import baseurl from '../ApiService/ApiService';
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -47,7 +48,7 @@ export default function VendorActive() {
   useEffect(() => {
     const fetchVendors = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/vendor/all');
+        const response = await axios.get(baseurl + '/api/vendor/all');
         if (response.data.message === "Vendors retrieved successfully") {
           setVendors(response.data.data);
         }

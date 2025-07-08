@@ -35,6 +35,7 @@ import {
   CategoryRounded
 } from '@mui/icons-material';
 import { styled, alpha, createTheme, ThemeProvider } from '@mui/material/styles';
+import baseurl from '../ApiService/ApiService';
 
 const theme = createTheme({
   palette: {
@@ -152,7 +153,7 @@ export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState('general');
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/settings/all')
+    fetch(baseurl + '/api/settings/all')
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {
@@ -215,7 +216,7 @@ export default function AdminSettings() {
       formData.append('site_dark_logo', settings.site_dark_logo_file);
     }
 
-    fetch('http://localhost:8000/api/settings/create', {
+    fetch(baseurl + '/api/settings/create', {
       method: 'POST',
       body: formData,
     })

@@ -7,6 +7,7 @@ import {
 import { green, orange } from '@mui/material/colors';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { useNavigate, useParams } from 'react-router-dom';
+import baseurl from '../ApiService/ApiService';
 
 export default function CustomerManagementView3() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function CustomerManagementView3() {
 
   useEffect(() => {
     if (id) {
-      fetch('http://localhost:8000/api/order/all')
+      fetch(baseurl + '/api/order/all')
         .then((res) => res.json())
         .then((data) => {
           if (data && data.data) {

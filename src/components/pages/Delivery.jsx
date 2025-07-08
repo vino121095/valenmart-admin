@@ -30,6 +30,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import baseurl from '../ApiService/ApiService';
 
 const statusColors = {
   Available: 'success',
@@ -60,7 +61,7 @@ export default function DeliveryManagement() {
   const [editFormData, setEditFormData] = useState({});
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/driver-details/all')
+    fetch(baseurl + '/api/driver-details/all')
       .then((response) => response.json())
       .then((data) => {
         const driverData = data?.data || [];
@@ -85,7 +86,7 @@ export default function DeliveryManagement() {
   }, [pagination.page]);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/delivery/all')
+    fetch(baseurl + '/api/delivery/all')
       .then((res) => res.json())
       .then((data) => {
         const deliveryData = Array.isArray(data) ? data : [];
@@ -154,7 +155,7 @@ export default function DeliveryManagement() {
 
   const handleUpdateDriver = () => {
     // Here you would typically make an API call to update the driver
-    console.log('Updating driver:', selectedDriver.did, editFormData);
+    // console.log('Updating driver:', selectedDriver.did, editFormData);
     // For demo purposes, we'll just update the local state
     setDrivers(prev => prev.map(driver =>
       driver.did === selectedDriver.did ? { ...driver, ...editFormData } : driver

@@ -22,8 +22,6 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useNavigate, useParams } from "react-router-dom";
 import baseurl from "../ApiService/ApiService";
-// API Base URL
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 // Styled components
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -129,7 +127,7 @@ const EditCategory = () => {
       }
       
       const categoryData = await response.json();
-      console.log(categoryData.data);
+      // console.log(categoryData.data);
       setFormData({
         cid: categoryData.data.cid,
         category_name: categoryData.data.category_name,

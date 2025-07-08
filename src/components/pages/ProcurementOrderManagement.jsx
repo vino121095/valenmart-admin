@@ -1046,7 +1046,7 @@ const ProcurementOrderManagement = () => {
       {/* Toggle between Regular and Admin Table */}
       {!isAdminView ? (
         <RegularProcurementTable
-          data={orderData.filter((order) => order.type === "vendor")}
+          data={orderData.filter((order) => order.type === "vendor" || order.type === 'farmer')}
         />
       ) : (
         <AdminProcurement

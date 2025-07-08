@@ -7,6 +7,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import baseurl from '../ApiService/ApiService';
 
 const statusColors = {
   Online: '#D1FAE5',
@@ -27,7 +28,7 @@ export default function DriverLog() {
   useEffect(() => {
     const fetchDriverLogs = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/driver-log/all');
+        const res = await fetch(baseurl + '/api/driver-log/all');
         const result = await res.json();
         const logs = result.data || [];
 

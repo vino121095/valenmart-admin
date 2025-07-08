@@ -19,6 +19,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import baseurl from '../ApiService/ApiService';
 
 export default function DriverInvoiceView() {
   const { driverId } = useParams();
@@ -36,7 +37,7 @@ export default function DriverInvoiceView() {
 
     const fetchDriverDetails = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/driver-details/${driverId}`);
+        const res = await fetch(`${baseurl}/api/driver-details/${driverId}`);
         const data = await res.json();
         setDriver(data.data);
       } catch (err) {
@@ -46,7 +47,7 @@ export default function DriverInvoiceView() {
 
     const fetchDeliveries = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/delivery/all');
+        const res = await fetch(baseurl + '/api/delivery/all');
         const data = await res.json();
         // Filter deliveries for this driver with payment_status = "Received"
         const filtered = data.filter(delivery => 

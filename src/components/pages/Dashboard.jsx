@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
+import baseurl from '../ApiService/ApiService';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -23,10 +24,10 @@ const Dashboard = () => {
       setLoading(true);
       try {
         const [customersRes, vendorsRes, driversRes, deliveriesRes] = await Promise.all([
-          fetch('http://localhost:8000/api/customer-profile/all'),
-          fetch('http://localhost:8000/api/vendor/all'),
-          fetch('http://localhost:8000/api/driver-details/all'),
-          fetch('http://localhost:8000/api/delivery/all')
+          fetch(baseurl + '/api/customer-profile/all'),
+          fetch(baseurl + '/api/vendor/all'),
+          fetch(baseurl + '/api/driver-details/all'),
+          fetch(baseurl + '/api/delivery/all')
         ]);
         const customersData = await customersRes.json();
         const vendorsData = await vendorsRes.json();
@@ -60,7 +61,7 @@ const Dashboard = () => {
       setLoadingOrders(true);
       try {
         // For demo, use deliveries as today's orders (filter by today's date if needed)
-        const deliveriesRes = await fetch('http://localhost:8000/api/delivery/all');
+        const deliveriesRes = await fetch(baseurl + '/api/delivery/all');
         const deliveriesData = await deliveriesRes.json();
         let ordersArr = Array.isArray(deliveriesData) ? deliveriesData : deliveriesData.data || [];
         // Optionally filter for today's date
@@ -81,7 +82,7 @@ const Dashboard = () => {
     const fetchLowStock = async () => {
       setLoadingLowStock(true);
       try {
-        const productsRes = await fetch('http://localhost:8000/api/product/all');
+        const productsRes = await fetch(baseurl + '/api/product/all');
         const productsData = await productsRes.json();
         const products = productsData.data || [];
         // Simulate low stock: unit === '1'
@@ -105,7 +106,7 @@ const Dashboard = () => {
     const fetchSales = async () => {
       setLoadingSales(true);
       try {
-        const deliveriesRes = await fetch('http://localhost:8000/api/delivery/all');
+        const deliveriesRes = await fetch(baseurl + '/api/delivery/all');
         const deliveriesData = await deliveriesRes.json();
         const deliveries = Array.isArray(deliveriesData) ? deliveriesData : deliveriesData.data || [];
         // Count by type

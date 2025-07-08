@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import baseurl from '../ApiService/ApiService';
 
 // Map procurement status to MUI Chip colors; adjust or extend as needed
 const statusColor = {
@@ -60,7 +61,7 @@ export default function ProcurementInvoiceManagement() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/procurement/all');
+                const res = await fetch(baseurl + '/api/procurement/all');
                 if (!res.ok) {
                     console.error('Failed to fetch procurements, status:', res.status);
                     setProcurements([]);
@@ -88,7 +89,7 @@ export default function ProcurementInvoiceManagement() {
     }, []);
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/product/all')
+        fetch(baseurl + '/api/product/all')
             .then(res => res.json())
             .then(data => setProducts(data.data || []))
             .catch(() => setProducts([]));

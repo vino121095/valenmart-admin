@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import baseurl from '../ApiService/ApiService';
 
 export default function CustomerEditAccount() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function CustomerEditAccount() {
   });
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/customer-profile/${id}`)
+    fetch(`${baseurl}/api/customer-profile/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
@@ -103,7 +104,7 @@ export default function CustomerEditAccount() {
     };
 
     try {
-      const response = await fetch(`http://localhost:8000/api/customer-profile/update/${id}`, {
+      const response = await fetch(`${baseurl}/api/customer-profile/update/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

@@ -19,6 +19,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { green, red, orange, blue } from '@mui/material/colors';
+import baseurl from '../ApiService/ApiService';
 
 export default function InvoiceManagementHistory() {
   const { orderId } = useParams();
@@ -38,12 +39,12 @@ export default function InvoiceManagementHistory() {
       setLoading(true);
       try {
         // Fetch order details
-        const orderRes = await fetch(`http://localhost:8000/api/order/${orderId}`);
+        const orderRes = await fetch(`${baseurl}/api/order/${orderId}`);
         const orderData = await orderRes.json();
         const details = orderData.data;
         
         // Fetch order items
-        const itemsRes = await fetch('http://localhost:8000/api/order-items/all');
+        const itemsRes = await fetch(baseurl + '/api/order-items/all');
         const itemsData = await itemsRes.json();
         const filteredItems = itemsData.data.filter(
           (item) => item.order_id === Number(orderId)

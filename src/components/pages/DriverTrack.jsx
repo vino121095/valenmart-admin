@@ -10,6 +10,7 @@ import {
   Stack
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import baseurl from '../ApiService/ApiService';
 
 // Components for Map Markers and Legend
 function DriverMarker({ name, row, col, color }) {
@@ -78,7 +79,7 @@ export default function DriverTrack() {
   });
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/driver-details/all')
+    fetch(baseurl + '/api/driver-details/all')
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {

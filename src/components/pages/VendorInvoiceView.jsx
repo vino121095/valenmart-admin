@@ -18,6 +18,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import baseurl from '../ApiService/ApiService';
 
 const borderStyle = '1px solid #000';
 const noBorderStyle = 'none';
@@ -119,9 +120,9 @@ export default function VendorInvoiceView() {
     const fetchData = async () => {
       try {
         // Fetch procurement details
-        const res = await fetch(`http://localhost:8000/api/procurement/${id}`);
+        const res = await fetch(`${baseurl}/api/procurement/${id}`);
         const data = await res.json();
-        console.log(`API response for /procurement/${id}:`, data);
+        // console.log(`API response for /procurement/${id}:`, data);
 
         const procurementData = data.data;
 
@@ -133,9 +134,9 @@ export default function VendorInvoiceView() {
             // Fetch vendor details
             const vendorId = details.vendor_id;
             if (vendorId) {
-              const vendorRes = await fetch(`http://localhost:8000/api/vendor/${vendorId}`);
+              const vendorRes = await fetch(`${baseurl}/api/vendor/${vendorId}`);
               const vendorData = await vendorRes.json();
-              console.log(`API response for /vendor/${vendorId}:`, vendorData);
+              // console.log(`API response for /vendor/${vendorId}:`, vendorData);
               
               if (vendorData.data) {
                 const vDetails = Array.isArray(vendorData.data) ? vendorData.data[0] : vendorData.data;
@@ -156,7 +157,7 @@ export default function VendorInvoiceView() {
   }, [id, navigate]);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/product/all')
+    fetch(baseurl + '/api/product/all')
       .then(res => res.json())
       .then(data => setProducts(data.data || []))
       .catch(() => setProducts([]));

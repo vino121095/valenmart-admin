@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Box
 } from '@mui/material';
+import baseurl from '../ApiService/ApiService';
 
 const DriverDetails = () => {
   const [completedTodayList, setCompletedTodayList] = useState([]);
@@ -20,7 +21,7 @@ const DriverDetails = () => {
   useEffect(() => {
     const fetchCompletedDeliveries = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/delivery/all');
+        const response = await fetch(baseurl + '/api/delivery/all');
         if (!response.ok) {
           throw new Error('Failed to fetch deliveries');
         }

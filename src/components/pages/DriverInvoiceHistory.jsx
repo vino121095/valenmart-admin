@@ -19,6 +19,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { green, red, orange, blue } from '@mui/material/colors';
+import baseurl from '../ApiService/ApiService';
 
 export default function DriverInvoiceHistory() {
   const { deliveryId } = useParams();
@@ -38,14 +39,14 @@ export default function DriverInvoiceHistory() {
       setLoading(true);
       try {
         // Fetch delivery details
-        const deliveryRes = await fetch(`http://localhost:8000/api/delivery/${deliveryId}`);
+        const deliveryRes = await fetch(`${baseurl}/api/delivery/${deliveryId}`);
         const deliveryData = await deliveryRes.json();
         const details = deliveryData;
         setDeliveryDetails(details);
 
         // Fetch driver details
         if (details && details.driver && details.driver.did) {
-          const driverRes = await fetch(`http://localhost:8000/api/driver-details/${details.driver.did}`);
+          const driverRes = await fetch(`${baseurl}/api/driver-details/${details.driver.did}`);
           const driverData = await driverRes.json();
           setDriverDetails(driverData.data);
         }

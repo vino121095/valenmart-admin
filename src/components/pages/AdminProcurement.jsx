@@ -291,7 +291,7 @@ const AdminProcurement = ({
     };
 
     const handleReceive = (id) => {
-      console.log(`Receiving order ${id}`);
+      // console.log(`Receiving order ${id}`);
     };
 
     const handleView = (id) => {

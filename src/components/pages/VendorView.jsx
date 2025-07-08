@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import baseurl from '../ApiService/ApiService';
 
 export default function VendorView() {
   const navigate = useNavigate();
@@ -27,14 +28,14 @@ export default function VendorView() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`http://localhost:8000/api/vendor/${id}`);
+        const response = await fetch(`${baseurl}/api/vendor/${id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch vendor data");
         }
         const json = await response.json();
 
         // Debug: log API response
-        console.log("API data:", json.data);
+        // console.log("API data:", json.data);
 
         // Check if json.data is array or object
         if (Array.isArray(json.data)) {

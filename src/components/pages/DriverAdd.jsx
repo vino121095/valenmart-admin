@@ -16,6 +16,7 @@ import {
   InputAdornment
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import baseurl from '../ApiService/ApiService';
 
 export default function DriverAdd() {
   const [formData, setFormData] = useState({
@@ -72,7 +73,7 @@ export default function DriverAdd() {
         }
       });
 
-      const response = await fetch('http://localhost:8000/api/driver-details/create', {
+      const response = await fetch(baseurl + '/api/driver-details/create', {
         method: 'POST',
         body: bodyFormData,
       });

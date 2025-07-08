@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import baseurl from '../ApiService/ApiService';
 
 export default function VendorRegistrationForm() {
   const navigate = useNavigate();
@@ -104,7 +105,7 @@ export default function VendorRegistrationForm() {
     };
 
     try {
-      const response = await fetch('http://localhost:8000/api/vendor/create', {
+      const response = await fetch(baseurl + '/api/vendor/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -114,7 +115,7 @@ export default function VendorRegistrationForm() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Vendor created:', data);
+        // console.log('Vendor created:', data);
         alert('Vendor/Farmer account created successfully!');
         navigate('/vendors');
       } else {

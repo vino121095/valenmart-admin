@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import baseurl from '../ApiService/ApiService';
 
 export default function CustomerRegistrationForm() {
   const navigate = useNavigate();
@@ -87,7 +88,7 @@ export default function CustomerRegistrationForm() {
     };
 
     try {
-      const response = await fetch('http://localhost:8000/api/customer-profile/create', {
+      const response = await fetch(baseurl + '/api/customer-profile/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

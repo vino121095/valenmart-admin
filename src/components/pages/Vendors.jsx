@@ -22,6 +22,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import axios from 'axios';
+import baseurl from '../ApiService/ApiService';
 
 export default function VendorPending() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function VendorPending() {
 
   const fetchVendors = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/vendor/all');
+      const response = await axios.get(baseurl + '/api/vendor/all');
       if (response.data.message === "Vendors retrieved successfully") {
         setVendors(response.data.data);
       }
@@ -46,7 +47,7 @@ export default function VendorPending() {
   const handleDelete = async (vendor_id) => {
     if (window.confirm("Are you sure you want to delete this vendor?")) {
       try {
-        const response = await fetch(`http://localhost:8000/api/vendor/delete/${vendor_id}`, {
+        const response = await fetch(baseurl + '/api/vendor/delete/' + vendor_id, {
           method: 'DELETE',
         });
 

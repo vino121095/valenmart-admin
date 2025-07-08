@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import baseurl from '../ApiService/ApiService';
 
 const AdminProfileForm = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +26,7 @@ const AdminProfileForm = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/admin/profile', {
+        const res = await fetch(baseurl + '/api/admin/profile', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -70,7 +71,7 @@ const AdminProfileForm = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/api/admin/profile', {
+      const res = await fetch(baseurl + '/api/admin/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +101,7 @@ const AdminProfileForm = () => {
     setPasswordLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/api/admin/change-password', {
+      const res = await fetch(baseurl + '/api/admin/change-password', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

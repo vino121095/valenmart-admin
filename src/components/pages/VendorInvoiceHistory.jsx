@@ -19,6 +19,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { green, red, orange, blue } from '@mui/material/colors';
+import baseurl from '../ApiService/ApiService';
 
 export default function VendorInvoiceHistory() {
   const { procurementId } = useParams();
@@ -35,7 +36,7 @@ export default function VendorInvoiceHistory() {
 
     const fetchProcurementDetails = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/procurement/${procurementId}`);
+        const res = await fetch(`${baseurl}/api/procurement/${procurementId}`);
         const data = await res.json();
         
         const details = Array.isArray(data.data) ? data.data[0] : data.data;

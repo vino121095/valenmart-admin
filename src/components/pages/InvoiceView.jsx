@@ -18,6 +18,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import baseurl from '../ApiService/ApiService';
 
 export default function TaxInvoiceView() {
 
@@ -134,7 +135,7 @@ export default function TaxInvoiceView() {
 
     const fetchOrderDetails = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/order/${orderId}`);
+        const res = await fetch(`${baseurl}/api/order/${orderId}`);
         const data = await res.json();
         setOrderDetails(data.data);
       } catch (err) {
@@ -144,7 +145,7 @@ export default function TaxInvoiceView() {
 
     const fetchOrderItems = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/order-items/all');
+        const res = await fetch(baseurl + '/api/order-items/all');
         const data = await res.json();
 
         // order_id in API is a number, orderId from params likely a string, convert to number

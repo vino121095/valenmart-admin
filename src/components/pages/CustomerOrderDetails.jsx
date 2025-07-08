@@ -16,6 +16,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaymentIcon from '@mui/icons-material/Payment';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import baseurl from '../ApiService/ApiService';
 
 export default function CustomerOrderDetails() {
   const { oid } = useParams();
@@ -24,7 +25,7 @@ export default function CustomerOrderDetails() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/order/${oid}`)
+    fetch(`${baseurl}/api/order/${oid}`)
       .then((res) => res.json())
       .then((data) => {
         setOrderDetails(data.data || null);

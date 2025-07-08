@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import baseurl from '../ApiService/ApiService';
 
 export default function VendorEdit() {
   const navigate = useNavigate();
@@ -36,13 +37,13 @@ export default function VendorEdit() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/vendor/${id}`)
+    fetch(`${baseurl}/api/vendor/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch vendor data');
         return res.json();
       })
       .then(data => {
-        console.log('API response data:', data);
+        // console.log('API response data:', data);
 
         if (!data.data) {
           throw new Error('No data found in API response');
@@ -125,7 +126,7 @@ export default function VendorEdit() {
       status: formData.status,
     };
 
-    fetch(`http://localhost:8000/api/vendor/update/${id}`, {
+    fetch(`${baseurl}/api/vendor/update/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

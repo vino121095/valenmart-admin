@@ -30,6 +30,8 @@ const statusColor = {
     Requested: 'warning',
     Rejected: 'error',
     Pending: 'info',
+    Delivered: 'success',
+    Received: 'success',
     // add other statuses if present
 };
 
@@ -161,23 +163,29 @@ export default function ProcurementInvoiceManagement() {
         return subtotal + taxAmount;
     };
 
-    // Optionally: calculate driver amount separately if needed:
-    const calculateDriverAmount = (proc) => {
-        const fee = parseFloat(proc.delivery_fee) || 0;
-        return fee;
-    };
+    // Handle payment receive action
+    const handleReceivePayment = (procurementId) => {
+        // Here you would typically make an API call to update the status
+        console.log(`Marking procurement ${procurementId} as received`);
 
-    // Optionally: calculate total_amount from API (includes taxes+delivery), but for vendor invoice we exclude delivery:
-    // const calculateVendorAmountFromTotal = (proc) => {
-    //   const totalAmt = parseFloat(proc.total_amount) || 0;
-    //   const fee = parseFloat(proc.delivery_fee) || 0;
-    //   return totalAmt - fee;
-    // };
+        // Update the local state for demonstration
+        setProcurements(prev => prev.map(p =>
+            p.procurement_id === procurementId ? { ...p, status: 'Received' } : p
+        ));
+
+        // Show confirmation or error message
+        alert(`Payment for procurement ${procurementId} marked as received`);
+    };
 
     // Helper to display 'Delivered' for 'Received' status
     const getDisplayStatus = (status) => {
         if (status === 'Received') return 'Delivered';
         return status;
+    };
+
+    // Check if payment should be marked as received
+    const isPaymentReceived = (status) => {
+        return status === 'Received' || status === 'Delivered';
     };
 
     if (loading) {
@@ -289,6 +297,7 @@ export default function ProcurementInvoiceManagement() {
                     <TableBody>
                         {filteredProcurements.map((proc, index) => {
                             const vendorAmt = calculateVendorAmount(proc);
+                            const isReceived = isPaymentReceived(proc.status);
                             return (
                                 <TableRow key={proc.procurement_id || index}>
                                     <TableCell>{proc.order_id}</TableCell>
@@ -343,18 +352,21 @@ export default function ProcurementInvoiceManagement() {
                                         </IconButton>
                                         {selectedIndex === index && (
                                             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-                                                <MenuItem onClick={() => navigate(`/vendor-invoice-view/${proc.procurement_id}`)}>View Details</MenuItem>
-                                                <MenuItem onClick={() => navigate(`/vendor-invoice-history/${proc.procurement_id}`)}>Payment History</MenuItem>
+                                                {(proc.status === 'Delivered' || proc.status === 'Received') && (
+                                                    <MenuItem onClick={() => navigate(`/vendor-invoice-view/${proc.procurement_id}`)}>View Details</MenuItem>
+                                                )}
+                                                <MenuItem onClick={() => navigate(`/invoicehistory/${proc.procurement_id}`)}>Payment History</MenuItem>
                                             </Menu>
                                         )}
                                     </TableCell>
                                     <TableCell>
                                         <Button
-                                            variant={proc.status === 'Delivered' ? 'outlined' : 'contained'}
+                                            variant={isReceived ? "outlined" : "contained"}
                                             color="success"
-                                            disabled={proc.status === 'Delivered'}
+                                            disabled={isReceived}
+                                            onClick={() => !isReceived && handleReceivePayment(proc.procurement_id)}
                                         >
-                                            {proc.status === 'Delivered' ? 'Received' : 'Receive'}
+                                            {isReceived ? 'Received' : 'Receive'}
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -363,9 +375,9 @@ export default function ProcurementInvoiceManagement() {
                         {filteredProcurements.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={10} align="center">
-                                    No procurement records found.<br/>
-                                    <span style={{fontSize: '0.9em', color: '#888'}}>
-                                        Possible reasons: No data from API, filters too strict, or data structure mismatch.<br/>
+                                    No procurement records found.<br />
+                                    <span style={{ fontSize: '0.9em', color: '#888' }}>
+                                        Possible reasons: No data from API, filters too strict, or data structure mismatch.<br />
                                         Check browser console for API response.
                                     </span>
                                 </TableCell>

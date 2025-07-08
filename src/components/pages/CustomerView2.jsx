@@ -194,8 +194,15 @@ export default function CustomerManagementView2() {
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
         <Button
           variant="contained"
-          sx={{ bgcolor: '#2CA66F' }}
+          sx={{
+            bgcolor: '#2CA66F',
+            '&:disabled': {
+              bgcolor: '#f5f5f5', // Grey background when disabled
+              color: '#9e9e9e'    // Grey text when disabled
+            }
+          }}
           onClick={() => navigate(`/invoice-view/${orderId}`)}
+          disabled={status !== 'Delivered'}
         >
           Download Invoice
         </Button>

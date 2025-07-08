@@ -42,7 +42,7 @@ const VisuallyHiddenInput = styled('input')({
 const EditProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   // Category options (matching AddProduct component)
   const categoryOptions = [
     'Vegetables',
@@ -53,7 +53,7 @@ const EditProductDetail = () => {
     'Organic',
     'Exotic'
   ];
-  
+
   // Form state
   const [formData, setFormData] = useState({
     product_id: '',
@@ -67,13 +67,20 @@ const EditProductDetail = () => {
     is_active: '',
     season_start: '',
     season_end: '',
+    cgst: '',
+    sgst: '',
+    delivery_fee: '',
+
   });
-  
+
   // File upload state
   const [productImage, setProductImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [originalImage, setOriginalImage] = useState('');
-  
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState('');
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -82,22 +89,46 @@ const EditProductDetail = () => {
   useEffect(() => {
     // Fetch product details when component mounts
     fetchProductDetails();
+    fetchCategories();
   }, [id]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${baseurl}/api/category/all`);
+      const data = await response.json();
+
+      let categoryList = [];
+
+      if (Array.isArray(data)) {
+        categoryList = data;
+      } else if (data?.data && Array.isArray(data.data)) {
+        categoryList = data.data;
+      } else if (data?.categories && Array.isArray(data.categories)) {
+        categoryList = data.categories;
+      }
+
+      setCategories(categoryList);
+    } catch (err) {
+      setCategoriesError('Failed to load categories');
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   const fetchProductDetails = async () => {
     try {
       setLoading(true);
       const response = await fetch(`${baseurl}/api/product/${id}`);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch product: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data && data.data) {
         const productData = data.data;
-        
+
         // Convert API data to match our form structure
         setFormData({
           product_id: productData.pid || '',
@@ -111,8 +142,12 @@ const EditProductDetail = () => {
           is_active: productData.is_active ? 'Available' : 'Unvailable',
           season_start: productData.season_start || '',
           season_end: productData.season_end || '',
+          cgst: productData.cgst || '',
+          sgst: productData.sgst || '',
+          delivery_fee: productData.delivery_fee || '',
+
         });
-        
+
         // Set image preview if available
         if (productData.product_image) {
           const imagePath = productData.product_image.replace(/\\/g, '/');
@@ -129,17 +164,17 @@ const EditProductDetail = () => {
       setLoading(false);
     }
   };
-  
+
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // For all other fields, just update normally
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Special handling for is_seasonal toggle
     if (name === 'is_seasonal') {
       // If switching to 'false', reset the season dates
@@ -164,13 +199,13 @@ const EditProductDetail = () => {
       ...(isChecked ? {} : { season_start: '', season_end: '' })
     }));
   };
-  
+
   // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setProductImage(file);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -179,41 +214,41 @@ const EditProductDetail = () => {
       reader.readAsDataURL(file);
     }
   };
-  
+
   // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (!formData.product_name || !formData.unit || !formData.price) {
       setError('Please fill all required fields');
       return;
     }
-    
+
     // If product is seasonal, check if season dates are provided
     if (formData.is_seasonal === 'true' && (!formData.season_start || !formData.season_end)) {
       setError('Please provide season start and end dates');
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     // Create form data object for API submission
     const productFormData = new FormData();
-    
+
     // Prepare data to send to the API
     const dataToSend = {
       ...formData
     };
-    
+
     // When seasonal, use the selected season type
     if (formData.is_seasonal === 'true') {
       dataToSend.is_seasonal = formData.season_type;
     } else {
       dataToSend.is_seasonal = 'all-season';
     }
-    
+
     // Append all form data fields
     Object.keys(dataToSend).forEach(key => {
       // Skip season_type as it's handled above
@@ -221,12 +256,12 @@ const EditProductDetail = () => {
         productFormData.append(key, dataToSend[key]);
       }
     });
-    
+
     // Append image file only if a new one was selected
     if (productImage) {
       productFormData.append('product_image', productImage);
     }
-    
+
     try {
       // Call API to update product
       const response = await fetch(`${baseurl}/api/product/update/${formData.product_id}`, {
@@ -234,20 +269,20 @@ const EditProductDetail = () => {
         body: productFormData,
         // No Content-Type header needed, browser sets it with proper boundary for FormData
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to update product');
       }
-      
+
       const data = await response.json();
       setSuccess(true);
-      
+
       // Navigate back after successful update
       setTimeout(() => {
         navigate('/products');
       }, 2000);
-      
+
     } catch (err) {
       console.error('Error updating product:', err);
       setError(err.message || 'Failed to update product. Please try again.');
@@ -255,24 +290,30 @@ const EditProductDetail = () => {
       setLoading(false);
     }
   };
-  
+
   // Handle reset button
   const handleReset = () => {
     fetchProductDetails();
   };
-  
+
   // Handle cancel button
   const handleCancel = () => {
-    navigate('/product-management');
+    navigate('/products');
   };
+
+  const formatDateForInput = (isoString) => {
+    if (!isoString) return '';
+    return isoString.split('T')[0]; // Extracts 'YYYY-MM-DD'
+  };
+
 
   return (
     <Box sx={{ bgcolor: '#f5f5f7', minHeight: '100vh', py: 3 }}>
       <Container maxWidth="lg">
         {/* Success message */}
-        <Snackbar 
-          open={success} 
-          autoHideDuration={3000} 
+        <Snackbar
+          open={success}
+          autoHideDuration={3000}
           onClose={() => setSuccess(false)}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
@@ -280,24 +321,24 @@ const EditProductDetail = () => {
             Product updated successfully!
           </Alert>
         </Snackbar>
-        
+
         {/* Breadcrumbs */}
-        <Breadcrumbs 
-          separator={<NavigateNextIcon fontSize="small" />} 
+        <Breadcrumbs
+          separator={<NavigateNextIcon fontSize="small" />}
           aria-label="breadcrumb"
           sx={{ mb: 2 }}
         >
-          <Link 
-            color="primary" 
-            underline="hover" 
+          <Link
+            color="primary"
+            underline="hover"
             href="/"
             sx={{ color: '#00b894', fontWeight: 500 }}
           >
             Dashboard
           </Link>
-          <Link 
-            color="primary" 
-            underline="hover" 
+          <Link
+            color="primary"
+            underline="hover"
             href="/product-management"
             sx={{ color: '#00b894', fontWeight: 500 }}
           >
@@ -305,7 +346,7 @@ const EditProductDetail = () => {
           </Link>
           <Typography color="textPrimary" sx={{ color: '#00b894', fontWeight: 500 }}>Edit Product</Typography>
         </Breadcrumbs>
-        
+
         {/* Title and subtitle */}
         <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 1 }}>
           Edit Product
@@ -313,21 +354,21 @@ const EditProductDetail = () => {
         <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
           Update product details, images, pricing and seasonal availability
         </Typography>
-        
+
         {/* Error message */}
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
         )}
-        
+
         {/* Loading state */}
         {loading && !error && (
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
             <CircularProgress />
           </Box>
         )}
-        
+
         {/* Main Form */}
         {!loading && (
           <form onSubmit={handleSubmit}>
@@ -336,8 +377,8 @@ const EditProductDetail = () => {
               <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', mb: 3 }}>
                 Basic Information
               </Typography>
-              
-              <Box sx={{ display: 'flex', flexDirection: {xs: 'column', md: 'row'}, gap: 2, mb: 3 }}>
+
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
                 <TextField
                   fullWidth
                   label="Product ID"
@@ -357,8 +398,8 @@ const EditProductDetail = () => {
                   onChange={handleInputChange}
                 />
               </Box>
-              
-              <Box sx={{ display: 'flex', flexDirection: {xs: 'column', md: 'row'}, gap: 2, mb: 3 }}>
+
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
                 <FormControl fullWidth required>
                   <InputLabel id="category-label">Select Category</InputLabel>
                   <Select
@@ -369,12 +410,17 @@ const EditProductDetail = () => {
                     value={formData.category}
                     onChange={handleInputChange}
                   >
-                    {categoryOptions.map((category) => (
-                      <MenuItem key={category} value={category}>{category}</MenuItem>
+                    {categories.map((category) => (
+                      <MenuItem
+                        key={category.id || category.name || category.category_name}
+                        value={category.name || category.category_name}
+                      >
+                        {category.name || category.category_name}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-                
+
                 <FormControl fullWidth required>
                   <InputLabel id="status-label">Product Status</InputLabel>
                   <Select
@@ -390,7 +436,7 @@ const EditProductDetail = () => {
                   </Select>
                 </FormControl>
               </Box>
-              
+
               <TextField
                 fullWidth
                 label="Description"
@@ -402,13 +448,13 @@ const EditProductDetail = () => {
                 value={formData.discription}
                 onChange={handleInputChange}
               />
-              
+
               {/* Pricing & Availability Section */}
               <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', mb: 3 }}>
                 Pricing & Availability
               </Typography>
-              
-              <Box sx={{ display: 'flex', flexDirection: {xs: 'column', md: 'row'}, gap: 2, mb: 3 }}>
+
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
                 {/* Toggle for Is Seasonal */}
                 <FormControl fullWidth>
                   <FormControlLabel
@@ -423,7 +469,7 @@ const EditProductDetail = () => {
                     sx={{ mb: 1 }}
                   />
                 </FormControl>
-                
+
                 <TextField
                   label="Weight in Kg"
                   variant="outlined"
@@ -445,10 +491,10 @@ const EditProductDetail = () => {
                   inputProps={{ inputMode: 'numeric', pattern: '[0-9]*(\.[0-9]+)?' }}
                 />
               </Box>
-              
+
               {/* Show season selector only if product is seasonal */}
               {formData.is_seasonal === 'true' && (
-                <Box sx={{ display: 'flex', flexDirection: {xs: 'column', md: 'row'}, gap: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
                   <FormControl fullWidth required>
                     <InputLabel id="season-type-label">Season Type</InputLabel>
                     <Select
@@ -467,10 +513,10 @@ const EditProductDetail = () => {
                   </FormControl>
                 </Box>
               )}
-              
+
               {/* Seasonal dates - only shown when seasonal is toggled on */}
               {formData.is_seasonal === 'true' && (
-                <Box sx={{ display: 'flex', flexDirection: {xs: 'column', md: 'row'}, gap: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
                   <TextField
                     label="Season Start Date"
                     type="date"
@@ -479,9 +525,10 @@ const EditProductDetail = () => {
                     fullWidth
                     required
                     name="season_start"
-                    value={formData.season_start}
+                    value={formatDateForInput(formData.season_start)}
                     onChange={handleInputChange}
                   />
+
                   <TextField
                     label="Season End Date"
                     type="date"
@@ -490,22 +537,54 @@ const EditProductDetail = () => {
                     fullWidth
                     required
                     name="season_end"
-                    value={formData.season_end}
+                    value={formatDateForInput(formData.season_end)}
                     onChange={handleInputChange}
                   />
+
                 </Box>
               )}
-              
+
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
+                <TextField
+                  label="CGST (%)"
+                  variant="outlined"
+                  fullWidth
+                  name="cgst"
+                  value={formData.cgst}
+                  onChange={handleInputChange}
+                  inputProps={{ inputMode: 'numeric', pattern: '[0-9]*(\\.[0-9]+)?' }}
+                />
+                <TextField
+                  label="SGST (%)"
+                  variant="outlined"
+                  fullWidth
+                  name="sgst"
+                  value={formData.sgst}
+                  onChange={handleInputChange}
+                  inputProps={{ inputMode: 'numeric', pattern: '[0-9]*(\\.[0-9]+)?' }}
+                />
+                <TextField
+                  label="Delivery Fee (₹)"
+                  variant="outlined"
+                  fullWidth
+                  name="delivery_fee"
+                  value={formData.delivery_fee}
+                  onChange={handleInputChange}
+                  inputProps={{ inputMode: 'numeric', pattern: '[0-9]*(\\.[0-9]+)?' }}
+                />
+              </Box>
+
+
               {/* Product Image Section */}
               <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', mb: 3 }}>
                 Product Image
               </Typography>
-              
-              <Box 
-                sx={{ 
-                  border: '2px dashed #ddd', 
-                  borderRadius: 1, 
-                  p: 8, 
+
+              <Box
+                sx={{
+                  border: '2px dashed #ddd',
+                  borderRadius: 1,
+                  p: 8,
                   textAlign: 'center',
                   mb: 4,
                   display: 'flex',
@@ -529,8 +608,8 @@ const EditProductDetail = () => {
                     <Button
                       component="label"
                       variant="contained"
-                      sx={{ 
-                        bgcolor: '#00b894', 
+                      sx={{
+                        bgcolor: '#00b894',
                         '&:hover': { bgcolor: '#00a382' },
                         mt: 2
                       }}
@@ -540,12 +619,12 @@ const EditProductDetail = () => {
                     </Button>
                   </Stack>
                 )}
-                
+
                 {imagePreview && (
-                  <Box 
-                    sx={{ 
-                      position: 'absolute', 
-                      bottom: 16, 
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 16,
                       right: 16,
                       bgcolor: 'rgba(255,255,255,0.8)',
                       p: 1,
@@ -556,8 +635,8 @@ const EditProductDetail = () => {
                       component="label"
                       variant="contained"
                       size="small"
-                      sx={{ 
-                        bgcolor: '#00b894', 
+                      sx={{
+                        bgcolor: '#00b894',
                         '&:hover': { bgcolor: '#00a382' }
                       }}
                     >
@@ -568,15 +647,15 @@ const EditProductDetail = () => {
                 )}
               </Box>
             </Paper>
-            
+
             {/* Action Buttons */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button 
+              <Button
                 type="submit"
-                variant="contained" 
+                variant="contained"
                 disabled={loading}
-                sx={{ 
-                  bgcolor: '#00b894', 
+                sx={{
+                  bgcolor: '#00b894',
                   '&:hover': { bgcolor: '#00a382' },
                   px: 4
                 }}
@@ -584,11 +663,11 @@ const EditProductDetail = () => {
               >
                 {loading ? 'Updating...' : 'Update Product'}
               </Button>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 onClick={handleReset}
                 disabled={loading}
-                sx={{ 
+                sx={{
                   borderColor: '#00b894',
                   color: '#00b894',
                   '&:hover': { borderColor: '#00a382', bgcolor: 'rgba(0, 184, 148, 0.1)' },
@@ -597,12 +676,12 @@ const EditProductDetail = () => {
               >
                 Reset
               </Button>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 onClick={handleCancel}
                 disabled={loading}
-                sx={{ 
-                  borderColor: '#aaa', 
+                sx={{
+                  borderColor: '#aaa',
                   color: '#aaa',
                   '&:hover': { borderColor: '#999', bgcolor: 'rgba(170, 170, 170, 0.1)' },
                   px: 4

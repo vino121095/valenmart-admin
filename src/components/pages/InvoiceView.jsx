@@ -19,6 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import baseurl from '../ApiService/ApiService';
+import velaanLogo from '../assets/velaanLogo.png';
 
 export default function TaxInvoiceView() {
 
@@ -325,7 +326,7 @@ export default function TaxInvoiceView() {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <img src="/velaan-logo.png" alt="Velaan Mart" style={{ maxWidth: '80px', height: 'auto' }} />
+            <img src={velaanLogo} alt="Velaan Mart" style={{ maxWidth: '100px', height: 'auto' }} />
           </Box>
           <Box sx={{
             flex: 1,

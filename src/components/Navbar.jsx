@@ -37,6 +37,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { useAuth } from '../App'; // Import the useAuth hook
 import baseurl from "./ApiService/ApiService";
+import velaanLogo from './assets/velaanLogo.png';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -250,16 +251,18 @@ const Navbar = ({ handleDrawerToggle }) => {
           >
             <MenuIcon />
           </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
+            <img src={velaanLogo} alt="Velaan Mart Logo" style={{ height: '50px', width: 'auto', marginRight: 12 }} />
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{ display: { xs: 'none', sm: 'block' } }}
+            >
+              Velaan Mart
+            </Typography>
+          </Box>
           
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{ display: { xs: 'none', sm: 'block' } }}
-          >
-            Velaan Mart
-          </Typography>
-
           <Box sx={{ width: { xs: '5%', sm: '10%' } }} />
 
           <Search sx={{ flexGrow: 1, maxWidth: { sm: 500 } }}>

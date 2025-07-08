@@ -422,7 +422,7 @@ function App() {
                   <CustomerOrderDetails />
                 </ProtectedRoute>
               } />
-              <Route path="/drivertask" element={
+              <Route path="/drivertask/:id?" element={
                 <ProtectedRoute>
                   <DriverTask />
                 </ProtectedRoute>
@@ -437,7 +437,7 @@ function App() {
                   <DriverLog />
                 </ProtectedRoute>
               } />
-              <Route path="/driveradd" element={
+              <Route path="/driveradd/:id?" element={
                 <ProtectedRoute>
                   <DriverAdd />
                 </ProtectedRoute>

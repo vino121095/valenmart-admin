@@ -225,7 +225,9 @@ export default function InvoiceManagement() {
                   </IconButton>
                   {selectedIndex === index && (
                     <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-                      <MenuItem onClick={() => navigate(`/invoice-view/${order.oid}`)}>View Details</MenuItem>
+                      {order.status === 'Delivered' && (
+                        <MenuItem onClick={() => navigate(`/invoice-view/${order.oid}`)}>View Details</MenuItem>
+                      )}
                       <MenuItem onClick={() => navigate(`/invoicehistory/${order.oid}`)}>Payment History</MenuItem>
                     </Menu>
                   )}

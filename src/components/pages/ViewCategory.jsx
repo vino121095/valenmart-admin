@@ -130,7 +130,7 @@ const ViewCategory = () => {
         </Typography>
         <Button 
           variant="contained" 
-          onClick={() => navigate("/categories")}
+          onClick={() => navigate("/product-category")}
           sx={{ mt: 2 }}
         >
           Back to Categories
@@ -279,7 +279,7 @@ const ViewCategory = () => {
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
         <Button
           variant="outlined"
-          onClick={() => navigate("/categories")}
+          onClick={() => navigate("/product-category")}
           sx={{
             color: "#555",
             borderColor: "#ccc",

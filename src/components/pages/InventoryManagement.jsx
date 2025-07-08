@@ -25,9 +25,9 @@ import baseurl from '../ApiService/ApiService';
 // Styled components
 const StyledCard = styled(Card)(({ theme }) => ({
   height: '100%',
-  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
-  borderRadius: '8px',
-  padding: theme.spacing(3),
+  boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.05)',
+  borderRadius: '6px',
+  padding: theme.spacing(2),
   backgroundColor: '#ffffff'
 }));
 
@@ -36,21 +36,23 @@ const GreenChip = styled(Chip)(() => ({
   color: '#00b574',
   fontWeight: 'bold',
   borderRadius: '50px',
-  padding: '0 4px'
+  fontSize: '0.7rem',
 }));
 
 const GrayChip = styled(Chip)(() => ({
   backgroundColor: '#f0f0f0',
   color: '#666666',
   fontWeight: 'medium',
-  borderRadius: '50px'
+  borderRadius: '50px',
+  fontSize: '0.7rem',
 }));
 
 const ActionButton = styled(Button)(() => ({
   backgroundColor: '#00b574',
   color: 'white',
   borderRadius: '4px',
-  padding: '6px 16px',
+  padding: '4px 10px',
+  fontSize: '0.75rem',
   textTransform: 'none',
   '&:hover': {
     backgroundColor: '#009e64',
@@ -58,40 +60,36 @@ const ActionButton = styled(Button)(() => ({
 }));
 
 const StatsNumber = styled(Typography)(() => ({
-  fontSize: '2.5rem',
+  fontSize: '1.6rem',
   fontWeight: 'bold',
-  marginBottom: '0.5rem',
-  marginTop: '0.5rem'
+  marginBottom: '0.3rem',
+  marginTop: '0.3rem'
 }));
 
-const RedCircle = styled(Box)(() => ({
+const CircleBase = styled(Box)(() => ({
+  borderRadius: '50%',
+  width: '36px',
+  height: '36px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '0.9rem',
+  fontWeight: 'bold'
+}));
+
+const RedCircle = styled(CircleBase)(() => ({
   backgroundColor: '#ffeeee',
-  borderRadius: '50%',
-  width: '50px',
-  height: '50px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
+  color: '#ff3333'
 }));
 
-const GreenCircle = styled(Box)(() => ({
+const GreenCircle = styled(CircleBase)(() => ({
   backgroundColor: '#e6f7f0',
-  borderRadius: '50%',
-  width: '50px',
-  height: '50px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
+  color: '#00b574'
 }));
 
-const GrayCircle = styled(Box)(() => ({
+const GrayCircle = styled(CircleBase)(() => ({
   backgroundColor: '#f0f0f0',
-  borderRadius: '50%',
-  width: '50px',
-  height: '50px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
+  color: '#666'
 }));
 
 export default function InventoryDashboard() {
@@ -105,7 +103,7 @@ export default function InventoryDashboard() {
         const res = await fetch(`${baseurl}/api/product/all`);
         const data = await res.json();
         setProducts(data.data || []);
-      } catch (err) {
+      } catch {
         setProducts([]);
       } finally {
         setLoading(false);
@@ -124,71 +122,52 @@ export default function InventoryDashboard() {
   const lowStockProductsCount = lowStockProductsList.length;
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f7', minHeight: '100vh', p: 3, width: '100%' }}>
-      {/* Breadcrumb */}
-      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00b574' }} />} sx={{ mb: 2 }}>
-        <Link color="#00b574" underline="hover" href="#" sx={{ fontWeight: 'medium' }}>Dashboard</Link>
-        <Typography color="#00b574" sx={{ fontWeight: 'medium' }}>Inventory Management</Typography>
+    <Box sx={{ bgcolor: '#f5f5f7', minHeight: '100vh', p: 2, width: '100%' }}>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00b574' }} />} sx={{ mb: 1 }}>
+        <Link color="#00b574" underline="hover" href="#" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Dashboard</Link>
+        <Typography color="#00b574" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Inventory</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>Inventory Management</Typography>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>Inventory Overview</Typography>
 
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* Total Products */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid item xs={12} md={4}>
           <StyledCard>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Box>
-                <Typography variant="h6" sx={{ color: '#333' }}>Total Products</Typography>
+                <Typography variant="subtitle2" sx={{ color: '#333' }}>Total Products</Typography>
                 <StatsNumber>{totalProducts}</StatsNumber>
-                <Typography variant="body1" color="text.secondary">{availableProducts} Available</Typography>
+                <Typography variant="caption" color="text.secondary">{availableProducts} Available</Typography>
               </Box>
-              <GreenCircle>
-                <Typography sx={{ color: '#00b574', fontWeight: 'bold' }}>{availableProducts}</Typography>
-              </GreenCircle>
+              <GreenCircle>{availableProducts}</GreenCircle>
             </Box>
           </StyledCard>
         </Grid>
 
-        {/* Available Products */}
         <Grid item xs={12} md={4}>
           <StyledCard>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Box>
-                <Typography variant="h6" sx={{ color: '#333' }}>Available Products</Typography>
+                <Typography variant="subtitle2" sx={{ color: '#333' }}>Available Products</Typography>
                 <StatsNumber>{availableProducts}</StatsNumber>
-                <Typography variant="body1" color="text.secondary">{totalProducts} Total</Typography>
+                <Typography variant="caption" color="text.secondary">{totalProducts} Total</Typography>
               </Box>
               <GrayCircle>
-                <Typography sx={{ color: '#666', fontWeight: 'bold' }}>
-                  {((availableProducts / (totalProducts || 1)) * 100).toFixed(0)}%
-                </Typography>
+                {((availableProducts / (totalProducts || 1)) * 100).toFixed(0)}%
               </GrayCircle>
             </Box>
           </StyledCard>
         </Grid>
 
-        {/* Low Stock Alerts */}
         <Grid item xs={12} md={4}>
           <StyledCard>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <Box>
-                <Typography variant="h6" sx={{ color: '#333' }}>Low Stock Alerts</Typography>
+                <Typography variant="subtitle2" sx={{ color: '#333' }}>Low Stock Alerts</Typography>
                 <StatsNumber sx={{ color: '#ff3333' }}>{lowStockProductsCount} Items</StatsNumber>
-                {/* <Typography variant="body1" color="text.secondary">Action Required</Typography> */}
-                {/* {lowStockProductsCount > 0 && (
-                  <ul style={{ marginTop: '0.5rem', paddingLeft: '1rem' }}>
-                    {lowStockProductsList.map(p => (
-                      <li key={p.pid} style={{ fontSize: '0.9rem', color: '#ff3333' }}>
-                        {p.product_name}
-                      </li>
-                    ))}
-                  </ul>
-                )} */}
               </Box>
               <RedCircle>
-                <ErrorOutlineIcon sx={{ color: '#ff3333', fontSize: '1.8rem' }} />
+                <ErrorOutlineIcon fontSize="small" />
               </RedCircle>
             </Box>
           </StyledCard>
@@ -196,21 +175,26 @@ export default function InventoryDashboard() {
       </Grid>
 
       {/* Product Table */}
-      <Paper sx={{ borderRadius: '8px', overflow: 'hidden' }}>
-        <Box sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Product Inventory</Typography>
+      <Paper sx={{ borderRadius: '6px', overflow: 'hidden' }}>
+        <Box sx={{ p: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Product Inventory</Typography>
         </Box>
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: 200 }}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: 120 }}>
+            <CircularProgress size={24} />
           </Box>
         ) : (
-          <TableContainer>
-            <Table>
+          <TableContainer sx={{ maxHeight: 420 }}>
+            <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
                   {['Image', 'Product Name', 'Category', 'Unit', 'Price (₹)', 'Status', 'Actions'].map(title => (
-                    <TableCell key={title} sx={{ fontWeight: 'bold', color: '#fff', bgcolor: '#00b574' }}>{title}</TableCell>
+                    <TableCell
+                      key={title}
+                      sx={{ fontWeight: 'bold', fontSize: '0.75rem', bgcolor: '#00b574', color: '#fff' }}
+                    >
+                      {title}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -221,21 +205,20 @@ export default function InventoryDashboard() {
                     <TableRow
                       key={product.pid}
                       sx={{
-                        backgroundColor: isLowStock ? '#ff3333a8' : 'inherit',
-                        borderLeft: isLowStock ? '6px solidhsla(0, 100.00%, 60.00%, 0.49)' : 'none'
+                        backgroundColor: isLowStock ? '#fd6e6e' : 'inherit',
                       }}
                     >
                       <TableCell>
                         <img
                           src={`${baseurl}/${product.product_image.replace(/\\/g, '/')}`}
                           alt={product.product_name}
-                          style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }}
+                          style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }}
                         />
                       </TableCell>
-                      <TableCell>{product.product_name}</TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>{product.unit}</TableCell>
-                      <TableCell>{product.price}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem' }}>{product.product_name}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem' }}>{product.category}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem' }}>{product.unit}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem' }}>{product.price}</TableCell>
                       <TableCell>
                         {product.is_active === 'Available' ? (
                           <GreenChip label="Available" size="small" />
@@ -260,7 +243,6 @@ export default function InventoryDashboard() {
                   </TableRow>
                 )}
               </TableBody>
-
             </Table>
           </TableContainer>
         )}

@@ -36,8 +36,11 @@ const statusColor = {
 export default function CustomerManagement() {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -66,10 +69,12 @@ export default function CustomerManagement() {
 
         const enrichedCustomers = customerData.data.map(customer => ({
           ...customer,
-          orderCount: ordersByCustomer[customer.cpid] || 0
+          orderCount: ordersByCustomer[customer.cpid] || 0,
+          status: customer.status || 'Active' // Default to Active if status not provided
         }));
 
         setCustomers(enrichedCustomers);
+        setFilteredCustomers(enrichedCustomers);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -79,6 +84,32 @@ export default function CustomerManagement() {
 
     fetchData();
   }, []);
+
+  // Apply filters whenever search term or status filter changes
+  useEffect(() => {
+    let result = [...customers];
+    
+    // Apply status filter
+    if (statusFilter) {
+      result = result.filter(customer => customer.status === statusFilter);
+    }
+    
+    // Apply search term filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(customer => 
+        customer.institution_name.toLowerCase().includes(term) ||
+        customer.contact_person_email.toLowerCase().includes(term) ||
+        customer.contact_person_phone.includes(term) ||
+        customer.address.toLowerCase().includes(term) ||
+        customer.city.toLowerCase().includes(term) ||
+        customer.state.toLowerCase().includes(term) ||
+        customer.postal_code.includes(term)
+      );
+    }
+    
+    setFilteredCustomers(result);
+  }, [searchTerm, statusFilter, customers]);
 
   const handleMenuClick = (event, index) => {
     setAnchorEl(event.currentTarget);
@@ -114,13 +145,27 @@ export default function CustomerManagement() {
     })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to delete customer');
-        setCustomers(customers.filter((cust) => cust.cpid !== customerId));
+        const updatedCustomers = customers.filter((cust) => cust.cpid !== customerId);
+        setCustomers(updatedCustomers);
         handleClose();
       })
       .catch((err) => {
         console.error('Delete error:', err);
         alert('Failed to delete customer. Please try again.');
       });
+  };
+
+  const handleStatusFilterChange = (event) => {
+    setStatusFilter(event.target.value);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('');
   };
 
   return (
@@ -144,7 +189,11 @@ export default function CustomerManagement() {
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         <FormControl sx={{ minWidth: 180 }}>
           <InputLabel>Filter by Status</InputLabel>
-          <Select label="Filter by Status" defaultValue="">
+          <Select 
+            label="Filter by Status" 
+            value={statusFilter}
+            onChange={handleStatusFilterChange}
+          >
             <SelectItem value="">All</SelectItem>
             <SelectItem value="Active">Active</SelectItem>
             <SelectItem value="Inactive">Inactive</SelectItem>
@@ -154,6 +203,8 @@ export default function CustomerManagement() {
 
         <TextField
           placeholder="Search Customer"
+          value={searchTerm}
+          onChange={handleSearchChange}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -162,6 +213,14 @@ export default function CustomerManagement() {
             ),
           }}
         />
+
+        <Button 
+          variant="outlined" 
+          onClick={resetFilters}
+          disabled={!searchTerm && !statusFilter}
+        >
+          Reset Filters
+        </Button>
       </Box>
 
       <TableContainer component={Paper}>
@@ -181,47 +240,68 @@ export default function CustomerManagement() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {customers.map((customer, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <Typography fontWeight="medium">{customer.institution_name}</Typography>
-                  <Typography variant="body2" color="text.secondary">{customer.id}</Typography>
-                </TableCell>
-                <TableCell>{customer.contact_person_email}</TableCell>
-                <TableCell>{customer.contact_person_phone}</TableCell>
-                <TableCell>{customer.address}</TableCell>
-                <TableCell>{customer.city}</TableCell>
-                <TableCell>{customer.state}</TableCell>
-                <TableCell>{customer.postal_code}</TableCell>
-                <TableCell align="center">{customer.orderCount}</TableCell>
-                <TableCell>
-                  <Chip
-                    label="Active"
-                    color={statusColor['Active']}
-                    variant="outlined"
-                  />
-                </TableCell>
-                <TableCell>
-                  <IconButton onClick={(e) => handleMenuClick(e, index)}>
-                    <MoreVertIcon />
-                  </IconButton>
-                  {selectedIndex === index && (
-                    <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-                      <MenuItem onClick={() => navigate(`/customerview1/${customer.cpid}`)}>View Details</MenuItem>
-                      <MenuItem onClick={() => handleEditCustomer(customer.cpid)}>Edit Account</MenuItem>
-                      <MenuItem onClick={handleClose}>Set as Active</MenuItem>
-                      <MenuItem onClick={() => navigate(`/customerview3/${customer.cpid}`)}>View Purchase History</MenuItem>
-                      <MenuItem onClick={() => handleDeleteCustomer(customer.cpid)} sx={{ color: 'red' }}>Delete Account</MenuItem>
-                    </Menu>
-                  )}
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={10} align="center">
+                  Loading...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={10} align="center" sx={{ color: 'error.main' }}>
+                  {error}
+                </TableCell>
+              </TableRow>
+            ) : filteredCustomers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={10} align="center">
+                  No customers found
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredCustomers.map((customer, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Typography fontWeight="medium">{customer.institution_name}</Typography>
+                    <Typography variant="body2" color="text.secondary">{customer.id}</Typography>
+                  </TableCell>
+                  <TableCell>{customer.contact_person_email}</TableCell>
+                  <TableCell>{customer.contact_person_phone}</TableCell>
+                  <TableCell>{customer.address}</TableCell>
+                  <TableCell>{customer.city}</TableCell>
+                  <TableCell>{customer.state}</TableCell>
+                  <TableCell>{customer.postal_code}</TableCell>
+                  <TableCell align="center">{customer.orderCount}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={customer.status}
+                      color={statusColor[customer.status]}
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton onClick={(e) => handleMenuClick(e, index)}>
+                      <MoreVertIcon />
+                    </IconButton>
+                    {selectedIndex === index && (
+                      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+                        <MenuItem onClick={() => navigate(`/customerview1/${customer.cpid}`)}>View Details</MenuItem>
+                        <MenuItem onClick={() => handleEditCustomer(customer.cpid)}>Edit Account</MenuItem>
+                        <MenuItem onClick={() => navigate(`/customerview3/${customer.cpid}`)}>View Purchase History</MenuItem>
+                        <MenuItem onClick={() => handleDeleteCustomer(customer.cpid)} sx={{ color: 'red' }}>Delete Account</MenuItem>
+                      </Menu>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
 
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Typography variant="body2">Showing 1 to 5 of {customers.length} Entries</Typography>
+          <Typography variant="body2">
+            Showing {filteredCustomers.length} of {customers.length} customers
+          </Typography>
           <Stack direction="row" spacing={1}>
             <Button variant="outlined" size="small">Previous</Button>
             {[1, 2, 3, 4].map((page) => (

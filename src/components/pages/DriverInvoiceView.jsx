@@ -48,8 +48,12 @@ export default function DriverInvoiceView() {
       try {
         const res = await fetch('http://localhost:8000/api/delivery/all');
         const data = await res.json();
-        // Filter deliveries for this driver
-        const filtered = data.filter(delivery => delivery.driver && delivery.driver.did === Number(driverId));
+        // Filter deliveries for this driver with payment_status = "Received"
+        const filtered = data.filter(delivery => 
+          delivery.driver && 
+          delivery.driver.did === Number(driverId) &&
+          delivery.payment_status === "Received"
+        );
         setDeliveries(filtered);
       } catch (err) {
         console.error('Error loading deliveries:', err);
@@ -81,13 +85,21 @@ export default function DriverInvoiceView() {
   };
 
   const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', minimumFractionDigits: 2
+    style: 'currency', 
+    currency: 'INR', 
+    minimumFractionDigits: 2
   }).format(amount || 0);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
 
   if (loading) return <CircularProgress />;
   if (!driver) return <Typography>No driver details found.</Typography>;
 
-  // Calculate total charges
+  // Calculate total charges for received payments only
   const totalCharges = deliveries.reduce((sum, d) => sum + (parseFloat(d.charges) || 0), 0);
   const completedDeliveries = deliveries.filter(d => d.status === 'Completed').length;
   const activeDeliveries = deliveries.filter(d => d.status === 'Active').length;
@@ -101,7 +113,7 @@ export default function DriverInvoiceView() {
         <Link color="inherit" href="/driver-invoice" underline="hover" sx={{ color: '#10B981' }}>
           Driver Invoice Management
         </Link>
-        <Typography color="textPrimary">Driver Invoice View</Typography>
+        <Typography color="textPrimary">Driver Invoice View (Received Payments)</Typography>
       </Breadcrumbs>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
@@ -132,7 +144,7 @@ export default function DriverInvoiceView() {
           </Box>
           <Box sx={{ width: '250px', p: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-              DRIVER INVOICE
+              RECEIVED PAYMENTS
             </Typography>
           </Box>
         </Box>
@@ -141,10 +153,10 @@ export default function DriverInvoiceView() {
         <Box sx={{ display: 'flex', borderBottom: '1px solid #000' }}>
           <Box sx={{ width: '50%', borderRight: '1px solid #000', p: 2 }}>
             <Typography sx={{ fontWeight: 'bold', fontSize: '14px', mb: 1 }}>Summary</Typography>
-            <Typography sx={{ fontSize: '14px' }}>Total Deliveries: {deliveries.length}</Typography>
+            <Typography sx={{ fontSize: '14px' }}>Total Received Deliveries: {deliveries.length}</Typography>
             <Typography sx={{ fontSize: '14px' }}>Completed: {completedDeliveries}</Typography>
             <Typography sx={{ fontSize: '14px' }}>Active: {activeDeliveries}</Typography>
-            <Typography sx={{ fontSize: '14px', mt: 1, fontWeight: 'bold' }}>Total Charges: {formatCurrency(totalCharges)}</Typography>
+            <Typography sx={{ fontSize: '14px', mt: 1, fontWeight: 'bold' }}>Total Received Amount: {formatCurrency(totalCharges)}</Typography>
           </Box>
           <Box sx={{ width: '50%', p: 2 }}>
             <Typography sx={{ fontWeight: 'bold', fontSize: '14px', mb: 1 }}>Contact & License</Typography>
@@ -161,28 +173,46 @@ export default function DriverInvoiceView() {
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                 <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>#</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Delivery No</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Date</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Time Slot</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Type</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Charges</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Payment Status</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Received Date</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {deliveries.map((delivery, idx) => (
                 <TableRow key={delivery.id}>
                   <TableCell sx={{ border: '1px solid #000' }}>{idx + 1}</TableCell>
+                  <TableCell sx={{ border: '1px solid #000' }}>{delivery.deliveryNo || `#${delivery.id}`}</TableCell>
                   <TableCell sx={{ border: '1px solid #000' }}>{new Date(delivery.date).toLocaleDateString()}</TableCell>
                   <TableCell sx={{ border: '1px solid #000' }}>{delivery.timeSlot}</TableCell>
                   <TableCell sx={{ border: '1px solid #000' }}>{delivery.type}</TableCell>
                   <TableCell sx={{ border: '1px solid #000' }}>{delivery.status}</TableCell>
                   <TableCell sx={{ border: '1px solid #000' }}>{formatCurrency(delivery.charges)}</TableCell>
+                  <TableCell sx={{ border: '1px solid #000' }}>{delivery.payment_status}</TableCell>
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    {delivery.updatedAt ? formatDate(delivery.updatedAt) : 'N/A'}
+                  </TableCell>
                 </TableRow>
               ))}
-              <TableRow>
-                <TableCell colSpan={5} align="right" sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Total Charges:</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>{formatCurrency(totalCharges)}</TableCell>
-              </TableRow>
+              {deliveries.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={9} align="center" sx={{ border: '1px solid #000' }}>
+                    No received payments found for this driver
+                  </TableCell>
+                </TableRow>
+              )}
+              {deliveries.length > 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} align="right" sx={{ fontWeight: 'bold', border: '1px solid #000' }}>Total Received:</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', border: '1px solid #000' }}>{formatCurrency(totalCharges)}</TableCell>
+                  <TableCell sx={{ border: '1px solid #000' }}></TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -192,11 +222,11 @@ export default function DriverInvoiceView() {
           <Box sx={{ width: '100%', p: 2 }}>
             <Typography sx={{ fontWeight: 'bold', fontSize: '14px', mb: 1 }}>Notes</Typography>
             <Typography sx={{ fontSize: '14px', mb: 2 }}>
-              This invoice summarizes all deliveries and charges for the driver. Please contact admin for any queries.
+              This invoice summarizes all received payments for the driver. Please contact admin for any queries.
             </Typography>
             <Typography sx={{ fontWeight: 'bold', fontSize: '14px', mb: 0.5 }}>Terms & Conditions</Typography>
             <Typography sx={{ fontSize: '12px' }}>
-              All payments are subject to company policy. Please ensure all delivery records are accurate and up to date.
+              All payments are verified and received as per company policy. Please ensure all payment records are accurate and up to date.
             </Typography>
           </Box>
         </Box>

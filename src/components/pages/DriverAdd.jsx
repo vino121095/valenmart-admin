@@ -1,428 +1,485 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Button,
-  TextField,
-  Grid,
   Typography,
+  TextField,
+  Button,
+  Box,
   Paper,
+  Grid,
+  FormControl,
+  InputLabel,
   Select,
   MenuItem,
-  InputLabel,
-  FormControl,
+  Alert,
   CircularProgress,
-  Input,
-  IconButton,
-  InputAdornment
+  Card,
+  CardContent
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import baseurl from '../ApiService/ApiService';
 
-export default function DriverAdd() {
+const DriverAdd = () => {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     email: '',
     password: '',
-    date_of_birth: '',
+    date_of_birth: null,
     vehicle_type: '',
     vehicle_number: '',
     vehicle: '',
     license_number: '',
-    license_expiry_date: '',
-    id_proof: null,
+    license_expiry_date: null,
     phone: '',
     emergency_phone: '',
     state: '',
     country: '',
+    status: 'Available'
+  });
+
+  const [files, setFiles] = useState({
     driver_image: null,
-    status: '',
-    last_login_time: '',
-    last_logout_time: '',
+    id_proof: null
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
-  const availableIdProofs = ['Aadhar', 'PAN', 'Voter ID', 'Passport'];
+  const vehicleTypes = ['truck', 'Bike', 'Car', 'Van', 'Scooter'];
+  const vehicleConditions = ['Excellent', 'Good', 'Fair', 'Poor'];
+  const statusOptions = ['Available', 'On Delivery', 'On Break', 'Offline'];
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'id_proof') {
-      setFormData(prev => ({ ...prev, id_proof: files[0] }));
-    } else if (name === 'driver_image') {
-      setFormData(prev => ({ ...prev, driver_image: files[0] }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleDateChange = (name, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    setFiles(prev => ({
+      ...prev,
+      [name]: files[0]
+    }));
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      'first_name', 'last_name', 'email', 'password', 'date_of_birth',
+      'vehicle_type', 'vehicle_number', 'vehicle', 'license_number',
+      'license_expiry_date', 'phone', 'emergency_phone', 'state', 'country'
+    ];
+
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        setMessage({ type: 'error', text: `${field.replace('_', ' ')} is required` });
+        return false;
+      }
     }
+
+    if (!files.driver_image) {
+      setMessage({ type: 'error', text: 'Driver image is required' });
+      return false;
+    }
+
+    if (!files.id_proof) {
+      setMessage({ type: 'error', text: 'ID proof is required' });
+      return false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setMessage({ type: 'error', text: 'Please enter a valid email address' });
+      return false;
+    }
+
+    // Phone validation
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      setMessage({ type: 'error', text: 'Please enter a valid 10-digit phone number' });
+      return false;
+    }
+
+    if (!phoneRegex.test(formData.emergency_phone)) {
+      setMessage({ type: 'error', text: 'Please enter a valid 10-digit emergency phone number' });
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
-    setError(null);
+    setMessage({ type: '', text: '' });
 
     try {
-      const bodyFormData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if ((key === 'driver_image' || key === 'id_proof') && value) {
-          bodyFormData.append(key, value);
-        } else if (value !== '' && key !== 'id_proof' && key !== 'driver_image') {
-          bodyFormData.append(key, value);
+      const formDataToSend = new FormData();
+      
+      // Add all form fields
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null) {
+          if (key === 'date_of_birth' || key === 'license_expiry_date') {
+            formDataToSend.append(key, formData[key].toISOString().split('T')[0]);
+          } else {
+            formDataToSend.append(key, formData[key]);
+          }
         }
       });
 
-      const response = await fetch(baseurl + '/api/driver-details/create', {
+      // Add files
+      formDataToSend.append('driver_image', files.driver_image);
+      formDataToSend.append('id_proof', files.id_proof);
+
+      const response = await fetch(`${baseurl}/api/driver-details/create`, {
         method: 'POST',
-        body: bodyFormData,
+        body: formDataToSend
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to add driver');
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Driver added successfully!' });
+        // Reset form
+        setFormData({
+          first_name: '',
+          last_name: '',
+          email: '',
+          password: '',
+          date_of_birth: null,
+          vehicle_type: '',
+          vehicle_number: '',
+          vehicle: '',
+          license_number: '',
+          license_expiry_date: null,
+          phone: '',
+          emergency_phone: '',
+          state: '',
+          country: '',
+          status: 'Available'
+        });
+        setFiles({
+          driver_image: null,
+          id_proof: null
+        });
+      } else {
+        setMessage({ type: 'error', text: result.message || 'Failed to add driver' });
       }
-
-      alert('Driver added successfully!');
-      setFormData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        password: '',
-        date_of_birth: '',
-        vehicle_type: '',
-        vehicle_number: '',
-        vehicle: '',
-        license_number: '',
-        license_expiry_date: '',
-        id_proof: null,
-        phone: '',
-        emergency_phone: '',
-        state: '',
-        country: '',
-        driver_image: null,
-        status: '',
-        last_login_time: '',
-        last_logout_time: '',
-      });
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      console.error('Error adding driver:', error);
+      setMessage({ type: 'error', text: 'An error occurred while adding the driver' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box sx={{ backgroundColor: '#f5f5f7', minHeight: '100vh', p: 2 }}>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="body2" color="green">
-          Dashboard &gt; Driver & Delivery Management &gt; Add New Driver
-        </Typography>
-        <Typography variant="h5" fontWeight="bold" mt={3} mb={3}>
-          Add New Driver
-        </Typography>
-      </Box>
+    <Box sx={{ padding: 3 }}>
+      <Typography variant="h4" gutterBottom sx={{ color: '#00A67E', fontWeight: 'bold' }}>
+        Add New Driver
+      </Typography>
 
-      <Paper sx={{ p: 3, borderRadius: 2 }} elevation={1}>
-        <form onSubmit={handleSubmit} encType="multipart/form-data">
-          <Grid container spacing={2}>
-            {/* Personal Info */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="First Name"
-                name="first_name"
-                value={formData.first_name}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Last Name"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={handleChange}
-                fullWidth
-                required
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(prev => !prev)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Emergency Phone"
-                name="emergency_phone"
-                type="tel"
-                value={formData.emergency_phone}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Date of Birth"
-                name="date_of_birth"
-                type="date"
-                value={formData.date_of_birth}
-                onChange={handleChange}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-
-            {/* Vehicle Info */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Vehicle Type"
-                name="vehicle_type"
-                value={formData.vehicle_type}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Vehicle Number"
-                name="vehicle_number"
-                value={formData.vehicle_number}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Vehicle Condition"
-                name="vehicle"
-                value={formData.vehicle}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-
-            {/* License */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="License Number"
-                name="license_number"
-                value={formData.license_number}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="License Expiry Date"
-                name="license_expiry_date"
-                type="date"
-                value={formData.license_expiry_date}
-                onChange={handleChange}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                required
-              />
-            </Grid>
-
-            {/* ID Proof Upload */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                ID Proof (Upload document):
-              </Typography>
-              <Input
-                type="file"
-                name="id_proof"
-                accept="image/*,.pdf,.doc,.docx"
-                onChange={handleChange}
-                fullWidth
-              />
-              {formData.id_proof && (
-                <Box mt={2}>
-                  <Typography variant="body2" color="textSecondary">
-                    ID Proof Preview:
-                  </Typography>
-                  {formData.id_proof.type.startsWith('image/') ? (
-                    <img
-                      src={URL.createObjectURL(formData.id_proof)}
-                      alt="ID Proof"
-                      style={{
-                        width: '100px',
-                        height: '100px',
-                        borderRadius: '8px',
-                        objectFit: 'cover',
-                      }}
-                    />
-                  ) : (
-                    <Typography variant="body2">{formData.id_proof.name}</Typography>
-                  )}
-                </Box>
-              )}
-            </Grid>
-
-            {/* Location */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="State"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Country"
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-
-            {/* Status */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-
-            {/* Driver Image Upload */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Driver Image (Upload driver's photo):
-              </Typography>
-              <Input
-                type="file"
-                name="driver_image"
-                accept="image/*"
-                onChange={handleChange}
-                fullWidth
-              />
-              {formData.driver_image && (
-                <Box mt={2}>
-                  <Typography variant="body2" color="textSecondary">
-                    Image Preview:
-                  </Typography>
-                  <img
-                    src={URL.createObjectURL(formData.driver_image)}
-                    alt="Driver"
-                    style={{
-                      width: '100px',
-                      height: '100px',
-                      borderRadius: '8px',
-                      objectFit: 'cover',
-                    }}
-                  />
-                </Box>
-              )}
-            </Grid>
-
-            {/* Profile Pic Upload */}
-            <Grid item xs={12} md={6}>
-              {/* Removed profile_pic upload field */}
-            </Grid>
-          </Grid>
-
-          {/* Submit and Cancel */}
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={loading}
-              sx={{ textTransform: 'none' }}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Add Driver'}
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              sx={{ textTransform: 'none' }}
-              onClick={() => setFormData({
-                first_name: '',
-                last_name: '',
-                email: '',
-                password: '',
-                date_of_birth: '',
-                vehicle_type: '',
-                vehicle_number: '',
-                vehicle: '',
-                license_number: '',
-                license_expiry_date: '',
-                id_proof: null,
-                phone: '',
-                emergency_phone: '',
-                state: '',
-                country: '',
-                driver_image: null,
-                status: '',
-                last_login_time: '',
-                last_logout_time: '',
-              })}
-            >
-              Cancel
-            </Button>
-          </Box>
-
-          {error && (
-            <Typography color="error" sx={{ mt: 2 }}>
-              {error}
-            </Typography>
+      <Card sx={{ maxWidth: 1200, margin: '0 auto' }}>
+        <CardContent>
+          {message.text && (
+            <Alert severity={message.type} sx={{ mb: 2 }}>
+              {message.text}
+            </Alert>
           )}
-        </form>
-      </Paper>
+
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              {/* Personal Information */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#00A67E' }}>
+                  Personal Information
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="First Name"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Last Name"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="Date of Birth"
+                    value={formData.date_of_birth}
+                    onChange={(value) => handleDateChange('date_of_birth', value)}
+                    renderInput={(params) => <TextField {...params} fullWidth required />}
+                  />
+                </LocalizationProvider>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Emergency Phone"
+                  name="emergency_phone"
+                  value={formData.emergency_phone}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="State"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Country"
+                  name="country"
+                  value={formData.country}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              {/* Vehicle Information */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#00A67E', mt: 2 }}>
+                  Vehicle Information
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth required>
+                  <InputLabel>Vehicle Type</InputLabel>
+                  <Select
+                    name="vehicle_type"
+                    value={formData.vehicle_type}
+                    onChange={handleInputChange}
+                    label="Vehicle Type"
+                  >
+                    {vehicleTypes.map((type) => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Vehicle Number"
+                  name="vehicle_number"
+                  value={formData.vehicle_number}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth required>
+                  <InputLabel>Vehicle Condition</InputLabel>
+                  <Select
+                    name="vehicle"
+                    value={formData.vehicle}
+                    onChange={handleInputChange}
+                    label="Vehicle Condition"
+                  >
+                    {vehicleConditions.map((condition) => (
+                      <MenuItem key={condition} value={condition}>{condition}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="License Number"
+                  name="license_number"
+                  value={formData.license_number}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="License Expiry Date"
+                    value={formData.license_expiry_date}
+                    onChange={(value) => handleDateChange('license_expiry_date', value)}
+                    renderInput={(params) => <TextField {...params} fullWidth required />}
+                  />
+                </LocalizationProvider>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth required>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    label="Status"
+                  >
+                    {statusOptions.map((status) => (
+                      <MenuItem key={status} value={status}>{status}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* File Uploads */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#00A67E', mt: 2 }}>
+                  Documents
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <input
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  id="driver-image-upload"
+                  type="file"
+                  name="driver_image"
+                  onChange={handleFileChange}
+                />
+                <label htmlFor="driver-image-upload">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    fullWidth
+                    sx={{ height: 56, borderColor: '#00A67E', color: '#00A67E' }}
+                  >
+                    {files.driver_image ? files.driver_image.name : 'Upload Driver Image'}
+                  </Button>
+                </label>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <input
+                  accept="image/*,.pdf"
+                  style={{ display: 'none' }}
+                  id="id-proof-upload"
+                  type="file"
+                  name="id_proof"
+                  onChange={handleFileChange}
+                />
+                <label htmlFor="id-proof-upload">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    fullWidth
+                    sx={{ height: 56, borderColor: '#00A67E', color: '#00A67E' }}
+                  >
+                    {files.id_proof ? files.id_proof.name : 'Upload ID Proof'}
+                  </Button>
+                </label>
+              </Grid>
+
+              {/* Submit Button */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    sx={{
+                      backgroundColor: '#00A67E',
+                      '&:hover': {
+                        backgroundColor: '#008f6b'
+                      },
+                      minWidth: 200,
+                      height: 50
+                    }}
+                  >
+                    {loading ? (
+                      <CircularProgress size={24} sx={{ color: 'white' }} />
+                    ) : (
+                      'Add Driver'
+                    )}
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </form>
+        </CardContent>
+      </Card>
     </Box>
   );
-}
+};
+
+export default DriverAdd;

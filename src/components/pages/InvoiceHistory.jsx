@@ -16,10 +16,13 @@ import {
   TableCell,
   TableBody,
   TableContainer,
-  CircularProgress
+  CircularProgress,
+  Breadcrumbs,
+  Link
 } from '@mui/material';
 import { green, red, orange, blue } from '@mui/material/colors';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 export default function InvoiceManagementHistory() {
   const { orderId } = useParams();
@@ -42,14 +45,14 @@ export default function InvoiceManagementHistory() {
         const orderRes = await fetch(`${baseurl}/api/order/${orderId}`);
         const orderData = await orderRes.json();
         const details = orderData.data;
-        
+
         // Fetch order items
         const itemsRes = await fetch(baseurl + '/api/order-items/all');
         const itemsData = await itemsRes.json();
         const filteredItems = itemsData.data.filter(
           (item) => item.order_id === Number(orderId)
         );
-        
+
         setOrderDetails(details);
         setOrderItems(filteredItems);
 
@@ -59,7 +62,7 @@ export default function InvoiceManagementHistory() {
         setLoading(false);
       }
     };
-    
+
     fetchAllData();
   }, [orderId, navigate]);
 
@@ -125,17 +128,15 @@ export default function InvoiceManagementHistory() {
   const paymentStatus = getPaymentStatus();
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 } }}>
-      {/* Breadcrumb */}
-      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-        Dashboard &gt; Invoice & Payment Tracking &gt; Payment History
-      </Typography>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/invoice">Customer Invoice & Payment Tracking</Link>
+        <Typography color="text.primary">Payment History</Typography>
+      </Breadcrumbs>
 
       <Typography variant="h5" fontWeight="bold" gutterBottom>
-        Payment History
-      </Typography>
-      <Typography variant="subtitle1" sx={{ mb: 2 }}>
-        {orderDetails.CustomerProfile?.institution_name || 'Customer'}
+        Payment History -  {orderDetails.CustomerProfile?.institution_name || 'Customer'}
       </Typography>
 
       <Button variant="outlined" sx={{ mb: 3 }} onClick={() => navigate(-1)}>

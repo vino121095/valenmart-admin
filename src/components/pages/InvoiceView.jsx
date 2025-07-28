@@ -284,7 +284,7 @@ export default function TaxInvoiceView() {
 
 
   return (
-    <Container>
+    <Box>
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
         <Link color="inherit" href="/" underline="hover" sx={{ color: '#10B981' }}>
           Dashboard
@@ -292,7 +292,7 @@ export default function TaxInvoiceView() {
         <Link color="inherit" href="/customer-orders" underline="hover" sx={{ color: '#10B981' }}>
           Customer Order Management
         </Link>
-        <Typography color="textPrimary">View Order</Typography>
+        <Typography color="textPrimary">View Invoice</Typography>
       </Breadcrumbs>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
@@ -763,6 +763,6 @@ export default function TaxInvoiceView() {
           </Box>
         </Box>
       </Paper>
-    </Container>
+    </Box>
   );
 }

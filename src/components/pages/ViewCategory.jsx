@@ -140,52 +140,12 @@ const ViewCategory = () => {
   }
 
   return (
-    <Box sx={{ padding: 3, maxWidth: "100%" }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-        <BackButton 
-          aria-label="back" 
-          onClick={() => navigate("/categories")}
-        >
-          <ArrowBackIcon />
-        </BackButton>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-        >
-          <Link
-            underline="hover"
-            href="/"
-            sx={{
-              color: "#00AB6B",
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            Dashboard
-          </Link>
-          <Link
-            underline="hover"
-            onClick={() => navigate("/categories")}
-            sx={{
-              color: "#00AB6B",
-              fontWeight: 500,
-              fontSize: "0.875rem",
-              cursor: "pointer",
-            }}
-          >
-            Product Management
-          </Link>
-          <Typography
-            color="text.primary"
-            sx={{
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            View Category
-          </Typography>
-        </Breadcrumbs>
-      </Box>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/product-category">Product Category</Link>
+        <Typography color="text.primary">View Category</Typography>
+      </Breadcrumbs>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography

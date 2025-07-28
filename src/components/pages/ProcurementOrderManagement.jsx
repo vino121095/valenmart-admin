@@ -45,7 +45,7 @@ import {
 } from "@mui/icons-material";
 import baseurl from "../ApiService/ApiService";
 import { useNavigate } from "react-router-dom";
-import AdminProcurement from "./AdminProcurement"; // Import the new component
+import AdminProcurement from "./AdminProcurement";
 
 const ProcurementOrderManagement = () => {
   const navigate = useNavigate();
@@ -55,26 +55,23 @@ const ProcurementOrderManagement = () => {
     Requested: 0,
     Approved: 0,
     Picked: 0,
-    Recived: 0,
+    Received: 0,
     Rejected: 0,
   });
 
-  // Component State
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [tablePage, setTablePage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [orderDirection, setOrderDirection] = useState({});
   const [selectedTab, setSelectedTab] = useState(0);
   const [paginationPage, setPaginationPage] = useState(1);
-  const [isAdminView, setIsAdminView] = useState(true); // Toggle state for view switching - DEFAULT TO TRUE
+  const [isAdminView, setIsAdminView] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editAmount, setEditAmount] = useState('');
   const [products, setProducts] = useState([]);
   const [multiEditOrder, setMultiEditOrder] = useState(null);
   const [multiEditAmounts, setMultiEditAmounts] = useState({});
   const [multiEditOpen, setMultiEditOpen] = useState(false);
-
-  // Image modal state for vendor/farmer view
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
@@ -89,7 +86,6 @@ const ProcurementOrderManagement = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data && Array.isArray(data.data)) {
-          // Parse items as in AdminProcurement.jsx
           const parsedData = data.data.map(row => ({
             ...row,
             items: typeof row.items === 'string'
@@ -98,26 +94,17 @@ const ProcurementOrderManagement = () => {
           }));
           setOrderData(parsedData);
           setFilteredOrders(parsedData);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching procurement data:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetch(`${baseurl}/api/procurement/all`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data && data.data) {
+          
+          // Calculate counts
           const counts = {
             all: data.data.length,
             Requested: 0,
             Approved: 0,
             Picked: 0,
-            Recived: 0,
+            Received: 0,
             Rejected: 0,
           };
+          
           data.data.forEach((order) => {
             if (order.status in counts) {
               counts[order.status]++;
@@ -127,23 +114,19 @@ const ProcurementOrderManagement = () => {
         }
       })
       .catch((error) => {
-        console.error("Error fetching order counts:", error);
+        console.error("Error fetching procurement data:", error);
       });
-  }, []);
 
-  useEffect(() => {
     fetch(`${baseurl}/api/product/all`)
       .then(res => res.json())
       .then(data => setProducts(data.data || []))
       .catch(() => setProducts([]));
   }, []);
 
-  // Toggle handler - REVERSED LOGIC
   const handleViewToggle = (event) => {
     setIsAdminView(!event.target.checked);
   };
 
-  // Product Image component
   const ProductImage = ({ imageUrl, itemName }) => {
     const [imgError, setImgError] = useState(false);
 
@@ -186,19 +169,17 @@ const ProcurementOrderManagement = () => {
     );
   };
 
-  // Status Chip Component
   const StatusChip = ({ status }) => {
     let color;
     switch (status) {
       case "Requested":
         color = "#FFC107";
         break;
-      case "Comfirmed":
       case "Confirmed":
-        color = "#4CAF50"; // Green for Confirmed
+        color = "#4CAF50";
         break;
       case "Waiting for Approval":
-        color = "#2196F3"; // Blue for Waiting for Approval
+        color = "#2196F3";
         break;
       case "Approved":
         color = "#388E3C";
@@ -231,9 +212,7 @@ const ProcurementOrderManagement = () => {
     );
   };
 
-  // Action Buttons based on status
   const ActionButtons = ({ status, orderId }) => {
-    // Handler functions for different actions
     const handleConfirm = async (id) => {
       try {
         const response = await fetch(`${baseurl}/api/procurement/update/${id}`, {
@@ -263,7 +242,6 @@ const ProcurementOrderManagement = () => {
     };
 
     const handleReject = async (id) => {
-      console.log(`Rejecting order ${id}`);
       try {
         const response = await fetch(`${baseurl}/api/procurement/update/${id}`, {
           method: "PUT",
@@ -289,26 +267,14 @@ const ProcurementOrderManagement = () => {
         console.error("Error confirming procurement:", error);
         alert("Something went wrong.");
       }
-      // Add API call for rejection
     };
 
     const handleAssign = (id) => {
-      console.log(orderData)
-      // Find the order object by procurement_id
       const order = orderData.find(o => o.procurement_id === id);
-      // Navigate to drivertask with order data in state
-      console.log(order)
       navigate('/drivertask', { state: { orderData: order } });
     };
 
-    const handleReceive = (id) => {
-      console.log(`Receiving order ${id}`);
-      // Add API call or navigation to receiving page
-    };
-
     const handleView = (id) => {
-      console.log(`Viewing order details for ${id}`);
-      // Navigate to detail view
       navigate(`/procurement-view/${id}`);
     };
 
@@ -331,7 +297,6 @@ const ProcurementOrderManagement = () => {
       }
     };
 
-    // Return different buttons based on status
     switch (status) {
       case "Requested":
         return (
@@ -358,7 +323,7 @@ const ProcurementOrderManagement = () => {
                 textTransform: "none",
                 whiteSpace: "nowrap",
               }}
-              onClick={()=> handleReject(orderId)}
+              onClick={() => handleReject(orderId)}
             >
               Reject
             </Button>
@@ -403,42 +368,42 @@ const ProcurementOrderManagement = () => {
           );
         }
       case "Waiting for Approval":
-          return (
-            <Stack direction="row" spacing={1}>
-              <Button
-                size="small"
-                color="warning"
-                variant="contained"
-                startIcon={<LocalShipping fontSize="small" />}
-                onClick={() => handleAssign(orderId)}
-                sx={{ fontSize: "0.75rem", textTransform: "none" }}
-              >
-                Edit Assign
-              </Button>
-              <Button
-                size="small"
-                color="inherit"
-                variant="outlined"
-                startIcon={<ReceiptLong fontSize="small" />}
-                onClick={() => handleView(orderId)}
-                sx={{ fontSize: "0.75rem", textTransform: "none" }}
-              >
-                View
-              </Button>
-            </Stack>
-          );
+        return (
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              color="warning"
+              variant="contained"
+              startIcon={<LocalShipping fontSize="small" />}
+              onClick={() => handleAssign(orderId)}
+              sx={{ fontSize: "0.75rem", textTransform: "none" }}
+            >
+              Edit Assign
+            </Button>
+            <Button
+              size="small"
+              color="inherit"
+              variant="outlined"
+              startIcon={<ReceiptLong fontSize="small" />}
+              onClick={() => handleView(orderId)}
+              sx={{ fontSize: "0.75rem", textTransform: "none" }}
+            >
+              View
+            </Button>
+          </Stack>
+        );
       case "Approved":
         return (
           <Button
-          size="small"
-          color="warning"
-          variant="contained"
-          startIcon={<ReceiptLong fontSize="small" />}
-          onClick={() => handleView(orderId)}
-          sx={{ fontSize: "0.75rem", textTransform: "none" }}
-        >
-          View
-        </Button>
+            size="small"
+            color="warning"
+            variant="contained"
+            startIcon={<ReceiptLong fontSize="small" />}
+            onClick={() => handleView(orderId)}
+            sx={{ fontSize: "0.75rem", textTransform: "none" }}
+          >
+            View
+          </Button>
         );
       case "Picked":
         return (
@@ -506,7 +471,6 @@ const ProcurementOrderManagement = () => {
     }
   };
 
-  // Table Handlers
   const handleChangePage = (event, newPage) => {
     setTablePage(newPage);
   };
@@ -533,17 +497,15 @@ const ProcurementOrderManagement = () => {
     );
   };
 
-  // Filter Tab Handlers
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
     const tabFilters = [
       "all",
-      "requested",
-      "Waiting for approval",
-      "approved",
-      "picked",
-      "received",
-      "rejected",
+      "Requested",
+      "Approved",
+      "Picked",
+      "Received",
+      "Rejected",
     ];
     handleFilterChange(tabFilters[newValue]);
   };
@@ -552,16 +514,8 @@ const ProcurementOrderManagement = () => {
     if (filter === "all") {
       setFilteredOrders(orderData);
     } else {
-      const statusMap = {
-        requested: "Requested",
-        approved: "Approved",
-        waitingforapproval: "Waiting for Approval",
-        picked: "Picked",
-        received: "Recived",
-        rejected: "Rejected",
-      };
       const filtered = orderData.filter(
-        (order) => order.status === statusMap[filter]
+        (order) => order.status === filter
       );
       setFilteredOrders(filtered);
     }
@@ -569,12 +523,10 @@ const ProcurementOrderManagement = () => {
     setTablePage(0);
   };
 
-  // Pagination Handler
   const handlePaginationChange = (event, value) => {
     setPaginationPage(value);
   };
 
-  // Table Configuration
   const headerCells = [
     { id: "id", label: "Order ID" },
     { id: "type", label: "Type", sortable: true },
@@ -593,18 +545,16 @@ const ProcurementOrderManagement = () => {
       ? Math.max(0, (1 + tablePage) * rowsPerPage - filteredOrders.length)
       : 0;
 
-  // Tab Configuration
   const tabFilters = [
-    { label: `All (${orderCounts.all})`, value: "all" },
-    { label: `Requested (${orderCounts.Requested})`, value: "requested" },
-    { label: `Approved (${orderCounts.Approved})`, value: "approved" },
-    { label: `Picked (${orderCounts.Picked})`, value: "picked" },
-    { label: `Received (${orderCounts.Recived})`, value: "received" },
-    { label: `Rejected (${orderCounts.Rejected})`, value: "rejected" },
+    { label: `All (${orderCounts.all})`, value: 0 },
+    { label: `Requested (${orderCounts.Requested})`, value: 1 },
+    { label: `Approved (${orderCounts.Approved})`, value: 2 },
+    { label: `Picked (${orderCounts.Picked})`, value: 3 },
+    { label: `Received (${orderCounts.Received})`, value: 4 },
+    { label: `Rejected (${orderCounts.Rejected})`, value: 5 },
   ];
 
   const handleAmountSave = async (id) => {
-    // Find the original row
     const row = orderData.find(order => order.procurement_id === id);
     let itemsArr = [];
     if (typeof row.items === 'string') {
@@ -635,7 +585,6 @@ const ProcurementOrderManagement = () => {
 
   const handleMultiEditOpen = (order) => {
     setMultiEditOrder(order);
-    // Initialize prices for each product only when opening
     const priceMap = {};
     order.items.forEach(item => {
       priceMap[item.product_id] = item.unit_price || '';
@@ -650,7 +599,6 @@ const ProcurementOrderManagement = () => {
 
   const handleMultiEditSave = async () => {
     if (!multiEditOrder) return;
-    // Find the original row
     const row = orderData.find(order => order.procurement_id === multiEditOrder.procurement_id);
     let itemsArr = [];
     if (typeof row.items === 'string') {
@@ -658,12 +606,13 @@ const ProcurementOrderManagement = () => {
     } else if (Array.isArray(row.items)) {
       itemsArr = [...row.items];
     }
-    // Update unit_price for each item
+    
     itemsArr.forEach(item => {
       if (multiEditAmounts[item.product_id] !== undefined) {
         item.unit_price = multiEditAmounts[item.product_id];
       }
     });
+    
     try {
       const response = await fetch(`${baseurl}/api/procurement/update/${multiEditOrder.procurement_id}`, {
         method: 'PUT',
@@ -674,6 +623,7 @@ const ProcurementOrderManagement = () => {
         setMultiEditOpen(false);
         setMultiEditOrder(null);
         setMultiEditAmounts({});
+        window.location.reload();
       } else {
         alert('Failed to update prices');
       }
@@ -682,25 +632,31 @@ const ProcurementOrderManagement = () => {
     }
   };
 
-  // Add parser for custom items string
-  function parseItemsString(itemsString) {
-    if (!itemsString) return [];
-    // Split by '),', but keep the closing parenthesis for the last item
-    const itemStrings = itemsString.split(/\),\s*/).map(s => s.endsWith(')') ? s : s + ')');
-    return itemStrings.map(itemStr => {
-      const nameMatch = itemStr.match(/^(.+?)\s*\(/);
-      const qtyMatch = itemStr.match(/\(([^k]+)kg/);
-      const priceMatch = itemStr.match(/@\s*₹([\d.]+)\/kg/);
-      const typeMatch = itemStr.match(/Type:\s*([^)]+)/);
-      return {
-        name: nameMatch ? nameMatch[1].trim() : '',
-        quantity: qtyMatch ? qtyMatch[1].trim() : '',
-        unit: 'kg',
-        price: priceMatch ? priceMatch[1].trim() : '',
-        type: typeMatch ? typeMatch[1].trim() : '',
-      };
-    });
-  }
+  const handleCloseImageModal = () => {
+    setImageModalOpen(false);
+    setImageUrl('');
+    setImageError(null);
+    setModalOrder(null);
+  };
+
+  const handleMarkAsReceived = async () => {
+    if (!modalOrder) return;
+    try {
+      const response = await fetch(`${baseurl}/api/procurement/update/${modalOrder.procurement_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Received' })
+      });
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        alert('Failed to update status');
+      }
+    } catch (err) {
+      alert('Error updating status');
+    }
+    handleCloseImageModal();
+  };
 
   const RegularProcurementTable = ({ data }) => {
     const emptyRows =
@@ -749,7 +705,6 @@ const ProcurementOrderManagement = () => {
                   tablePage * rowsPerPage + rowsPerPage
                 )
                 .map((row, index) => {
-                  // row.items is always an array now
                   let items = row.items || [];
                   return (
                     <TableRow
@@ -871,35 +826,8 @@ const ProcurementOrderManagement = () => {
     );
   };
 
-  const handleCloseImageModal = () => {
-    setImageModalOpen(false);
-    setImageUrl('');
-    setImageError(null);
-    setModalOrder(null);
-  };
-
-  const handleMarkAsReceived = async () => {
-    if (!modalOrder) return;
-    try {
-      const response = await fetch(`${baseurl}/api/procurement/update/${modalOrder.procurement_id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Received' })
-      });
-      if (response.ok) {
-        window.location.reload();
-      } else {
-        alert('Failed to update status');
-      }
-    } catch (err) {
-      alert('Error updating status');
-    }
-    handleCloseImageModal();
-  };
-
   return (
     <Box>
-      {/* Breadcrumbs */}
       <Breadcrumbs
         separator={<NavigateNextIcon fontSize="small" />}
         aria-label="breadcrumb"
@@ -928,7 +856,6 @@ const ProcurementOrderManagement = () => {
         </Typography>
       </Breadcrumbs>
 
-      {/* Page Title */}
       <Typography
         variant="h5"
         component="h1"
@@ -940,7 +867,6 @@ const ProcurementOrderManagement = () => {
         Procurement Order Management
       </Typography>
 
-      {/* Filter Tabs */}
       <Box sx={{ mt: 2, mb: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
@@ -976,10 +902,10 @@ const ProcurementOrderManagement = () => {
                 sx={{
                   borderRadius: 2,
                   px: 3,
-                  backgroundColor: "success.dark",
-                  "&:hover": {
-                    backgroundColor: "success.main",
-                  },
+                  // backgroundColor: "success.dark",
+                  // "&:hover": {
+                  //   backgroundColor: "success.main",
+                  // },
                   mt: { xs: 2, md: 2 },
                   marginLeft: "20px",
                 }}
@@ -992,14 +918,14 @@ const ProcurementOrderManagement = () => {
             <FormControlLabel
               control={
                 <Switch
-                  checked={!isAdminView} // REVERSED CHECKED STATE
+                  checked={!isAdminView}
                   onChange={handleViewToggle}
                   color="primary"
                 />
               }
               label={
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {!isAdminView ? "Vendor/Farmer View" : "Admin View"} {/* REVERSED LABEL */}
+                  {!isAdminView ? "Vendor/Farmer View" : "Admin View"}
                 </Typography>
               }
               sx={{ mr: 2 }}
@@ -1042,11 +968,9 @@ const ProcurementOrderManagement = () => {
         </Box>
       </Box>
 
-      {/* Toggle between Regular and Admin Table - REVERSED LOGIC */}
-      {/* Toggle between Regular and Admin Table */}
       {!isAdminView ? (
         <RegularProcurementTable
-          data={orderData.filter((order) => order.type === "vendor" || order.type === 'farmer')}
+          data={filteredOrders.filter((order) => order.type === "vendor" || order.type === 'farmer')}
         />
       ) : (
         <AdminProcurement
@@ -1060,8 +984,6 @@ const ProcurementOrderManagement = () => {
         />
       )}
 
-
-      {/* Bottom Pagination */}
       <Box
         sx={{
           display: "flex",
@@ -1089,7 +1011,6 @@ const ProcurementOrderManagement = () => {
         />
       </Box>
 
-      {/* Multi-Edit Modal moved here to prevent re-mounting issues */}
       <Dialog open={multiEditOpen} onClose={() => setMultiEditOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Product Prices</DialogTitle>
         <DialogContent>

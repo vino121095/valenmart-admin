@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Paper, Grid, TextField, Button, FormControl,
-  InputLabel, Select, MenuItem, IconButton, Divider, Alert, Snackbar
+  InputLabel, Select, MenuItem, IconButton, Divider, Alert, Snackbar, Breadcrumbs, Link
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 export default function CustomerEditAccount() {
   const navigate = useNavigate();
@@ -129,15 +130,12 @@ export default function CustomerEditAccount() {
   const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <IconButton onClick={handleBack} sx={{ mr: 1 }}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="p" fontWeight="light" color="#00B074" fontSize="14px">
-          Dashboard &gt; Customer Management &gt; Edit Customer
-        </Typography>
-      </Box>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/customer">Customer Management</Link>
+        <Typography color="text.primary">Edit ustomer Details</Typography>
+      </Breadcrumbs>
 
       <Typography variant="h5" fontWeight="bold" mb={3}>Edit Customer Details</Typography>
 

@@ -4,10 +4,11 @@ import {
   TableBody, TableCell, TableContainer, TableHead,
   TableRow, Paper, Pagination, FormControl, InputLabel,
   Card, CardContent, Grid, Stack, TextField,
-  Dialog, DialogTitle, DialogContent, DialogActions
+  Dialog, DialogTitle, DialogContent, DialogActions, Breadcrumbs, Link
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 const statusColors = {
   Online: '#D1FAE5',
@@ -112,14 +113,12 @@ export default function DriverLog() {
   });
 
   return (
-    <Box p={4} bgcolor="#f4f4f6">
-      {/* <Typography variant="body2" color="green">Dashboard &gt; Driver & Delivery Management</Typography> */}
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-        <Typography variant="h5" fontWeight="bold" mt={1} mb={3}>Driver Login Logs</Typography>
-        <Button variant="contained" color="success" onClick={() => navigate('/driveradd')}>Add Driver</Button>
-      </Box>
-
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Typography color="text.primary">Driver Login Logs</Typography>
+      </Breadcrumbs>
+      <Typography variant="h5" fontWeight="bold" mt={1} mb={3}>Driver Login Logs</Typography>
       <Stack direction="row" spacing={2} mb={3}>
         <Button variant="outlined" onClick={() => navigate('/delivery')}>Driver Accounts</Button>
         <Button variant="outlined" onClick={() => navigate('/drivertask')}>Assign Tasks</Button>

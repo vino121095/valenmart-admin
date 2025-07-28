@@ -93,7 +93,7 @@ export default function VendorPending() {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box>
       <Breadcrumbs
         separator={<NavigateNextIcon fontSize="small" />}
         aria-label="breadcrumb"
@@ -111,8 +111,8 @@ export default function VendorPending() {
           Dashboard
         </Link>
         <Typography
-          color="text.primary"
           sx={{
+            color: '#070d0cff',
             fontWeight: 500,
             fontSize: '0.875rem'
           }}

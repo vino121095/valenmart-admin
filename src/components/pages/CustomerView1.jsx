@@ -11,11 +11,14 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  TableContainer
+  TableContainer,
+  Breadcrumbs, 
+  Link 
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { green, yellow } from '@mui/material/colors';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 export default function CustomerManagementView1() {
   const [orders, setOrders] = useState([]);
@@ -62,10 +65,12 @@ export default function CustomerManagementView1() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#f4f4f8', minHeight: '100vh' }}>
-      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-        Dashboard &gt; Customer Management &gt; Customer Details
-      </Typography>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/customer">Customer Management</Link>
+        <Typography color="text.primary">Customer Details</Typography>
+      </Breadcrumbs>
 
       <Typography variant="h5" fontWeight="bold" gutterBottom>
         Customer Details - {customer.institution_name}

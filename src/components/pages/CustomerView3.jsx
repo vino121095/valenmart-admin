@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Button, Grid, Paper, MenuItem, Select,
   Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Chip, TextField
+  TableRow, Chip, TextField, Breadcrumbs, Link
 } from '@mui/material';
 import { green, orange } from '@mui/material/colors';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { useNavigate, useParams } from 'react-router-dom';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 export default function CustomerManagementView3() {
   const navigate = useNavigate();
@@ -71,10 +72,12 @@ export default function CustomerManagementView3() {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#f4f4f8', minHeight: '100vh' }}>
-      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-        Dashboard &gt; Customer Management &gt; View Purchase History
-      </Typography>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/customer">Customer Management</Link>
+        <Typography color="text.primary">Customer Details</Typography>
+      </Breadcrumbs>
 
       <Typography variant="h5" fontWeight="bold" gutterBottom>
         Customer Details - Tech University

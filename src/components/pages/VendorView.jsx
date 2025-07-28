@@ -83,35 +83,12 @@ export default function VendorView() {
   }
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-          sx={{ mb: 2 }}
-        >
-          <Link
-            underline="hover"
-            href="/"
-            sx={{
-              color: "#00A67E",
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            Dashboard
-          </Link>
-          <Typography
-            color="text.primary"
-            sx={{
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            Vendor/Farmer Management
-          </Typography>
-        </Breadcrumbs>
-      </Box>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/vendors">Vendor/Farmar Management</Link>
+        <Typography color="text.primary">View Vendor/Farmar Management</Typography>
+      </Breadcrumbs>
 
       <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: "auto" }}>
         <Box

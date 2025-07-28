@@ -75,7 +75,7 @@ const ViewProductDetail = () => {
   };
 
   const handleBack = () => {
-    navigate('/product-management');
+    navigate('/products');
   };
 
   const handleEdit = () => {
@@ -115,7 +115,7 @@ const ViewProductDetail = () => {
         <Link
           underline="hover"
           color="#00B074"
-          href="/product-management"
+          href="/products"
           sx={{ fontWeight: 500 }}
         >
           Product Management

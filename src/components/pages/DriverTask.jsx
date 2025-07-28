@@ -22,14 +22,17 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  IconButton
+  IconButton,
+  Breadcrumbs,
+  Link
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { format } from 'date-fns';
+import { format, isBefore } from 'date-fns';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 const DriverTask = () => {
   const navigate = useNavigate();
@@ -243,9 +246,18 @@ const DriverTask = () => {
     );
   };
 
+  // Function to disable dates before today
+  const disablePastDates = (date) => {
+    return isBefore(date, new Date().setHours(0, 0, 0, 0));
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#f4f4f8', minHeight: '100vh' }}>
+      <Box>
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+          <Link underline="hover" href="/">Dashboard</Link>
+          <Typography color="text.primary">Driver & Delivery Management</Typography>
+        </Breadcrumbs>
         <Typography variant="h5" fontWeight="bold" mb={3}>Driver & Delivery Management</Typography>
 
         <Stack direction="row" spacing={2} mb={3}>
@@ -280,6 +292,8 @@ const DriverTask = () => {
                   label="Date"
                   value={date}
                   onChange={(newValue) => setDate(newValue)}
+                  shouldDisableDate={disablePastDates}
+                  minDate={new Date()}
                   renderInput={(params) => (
                     <TextField {...params} variant="outlined" fullWidth margin="normal" required />
                   )}

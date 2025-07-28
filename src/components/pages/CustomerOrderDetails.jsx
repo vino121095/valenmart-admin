@@ -8,7 +8,9 @@ import {
   Button,
   Chip,
   Divider,
-  TextField
+  TextField,
+  Breadcrumbs,
+  Link
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
@@ -17,6 +19,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaymentIcon from '@mui/icons-material/Payment';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 export default function CustomerOrderDetails() {
   const { oid } = useParams();
@@ -57,11 +60,16 @@ export default function CustomerOrderDetails() {
     );
 
   return (
-    <Box sx={{ px: { xs: 2, md: 4 }, py: 4, maxWidth: 1100, mx: 'auto' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/customer">Customer Management</Link>
+        <Typography color="text.primary">Customer Details</Typography>
+      </Breadcrumbs>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between'}}>
         <Typography variant="h5">Order #{orderDetails.order_id}</Typography>
-        <Button variant="outlined" onClick={() => navigate(-1)}>
-          ← Back
+        <Button variant="outlined" onClick={() => navigate('/customer')} sx={{ mb: 3 }}>
+          &larr; Back
         </Button>
       </Box>
 

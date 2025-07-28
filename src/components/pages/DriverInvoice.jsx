@@ -3,13 +3,14 @@ import {
     Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Menu, MenuItem, Paper,
     Stack, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, TextField, Typography, Select,
-    FormControl, InputLabel, MenuItem as SelectItem, CircularProgress, Collapse, Alert
+    FormControl, InputLabel, MenuItem as SelectItem, CircularProgress, Collapse, Alert, Breadcrumbs, Link
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 const statusColor = {
     'Active': 'success',
@@ -469,11 +470,12 @@ export default function DriverInvoice() {
     );
 
     return (
-        <Box sx={{ p: 3 }}>
-            <Typography variant="h5" fontWeight="bold" mb={3}>
-                Driver Delivery Management
-            </Typography>
-
+        <Box>
+            <Breadcrumbs separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00b574' }} />} sx={{ mb: 1 }}>
+                <Link color="#00b574" underline="hover" href="#" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Dashboard</Link>
+                <Typography color="#07100dff" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Driver Invoice & Payment Tracking</Typography>
+            </Breadcrumbs>
+            <Typography variant="h5" fontWeight="bold" mb={3}>Driver Invoice & Payment Tracking</Typography>
             <Stack direction="row" spacing={2} mb={3}>
                 <Button variant="outlined" onClick={() => navigate('/invoice')}>
                     Customer Invoice

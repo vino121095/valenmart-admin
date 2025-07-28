@@ -308,8 +308,7 @@ const EditProductDetail = () => {
 
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f7', minHeight: '100vh', py: 3 }}>
-      <Container maxWidth="lg">
+    <Box>
         {/* Success message */}
         <Snackbar
           open={success}
@@ -323,28 +322,10 @@ const EditProductDetail = () => {
         </Snackbar>
 
         {/* Breadcrumbs */}
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-          sx={{ mb: 2 }}
-        >
-          <Link
-            color="primary"
-            underline="hover"
-            href="/"
-            sx={{ color: '#00b894', fontWeight: 500 }}
-          >
-            Dashboard
-          </Link>
-          <Link
-            color="primary"
-            underline="hover"
-            href="/product-management"
-            sx={{ color: '#00b894', fontWeight: 500 }}
-          >
-            Product Management
-          </Link>
-          <Typography color="textPrimary" sx={{ color: '#00b894', fontWeight: 500 }}>Edit Product</Typography>
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+          <Link underline="hover" href="/">Dashboard</Link>
+          <Link underline="hover" href="/products">Product Management</Link>
+          <Typography color="text.primary">Edit Product</Typography>
         </Breadcrumbs>
 
         {/* Title and subtitle */}
@@ -692,7 +673,7 @@ const EditProductDetail = () => {
             </Box>
           </form>
         )}
-      </Container>
+      
     </Box>
   );
 }

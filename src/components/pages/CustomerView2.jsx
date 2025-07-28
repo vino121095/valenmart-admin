@@ -12,11 +12,14 @@ import {
   TableCell,
   TableBody,
   TableContainer,
-  CircularProgress
+  CircularProgress,
+  Breadcrumbs,
+  Link
 } from '@mui/material';
 import { green, blue } from '@mui/material/colors';
 import { useLocation, useNavigate } from 'react-router-dom';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 export default function CustomerManagementView2() {
   const { state } = useLocation();
@@ -97,10 +100,12 @@ export default function CustomerManagementView2() {
   const grandTotal = subtotal + cgstAmount + sgstAmount + totalDeliveryFee;
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#f4f4f8', minHeight: '100vh' }}>
-      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-        Dashboard &gt; Customer Management &gt; Customer Details &gt; Order Details
-      </Typography>
+    <Box>
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/customer">Customer Management</Link>
+        <Typography color="text.primary">Order Details</Typography>
+      </Breadcrumbs>
 
       <Typography variant="h5" fontWeight="bold" gutterBottom>
         Order Details - #{order_id}

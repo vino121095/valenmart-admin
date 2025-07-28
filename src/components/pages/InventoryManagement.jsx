@@ -122,10 +122,10 @@ export default function InventoryDashboard() {
   const lowStockProductsCount = lowStockProductsList.length;
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f7', minHeight: '100vh', p: 2, width: '100%' }}>
+    <Box>
       <Breadcrumbs separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00b574' }} />} sx={{ mb: 1 }}>
         <Link color="#00b574" underline="hover" href="#" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Dashboard</Link>
-        <Typography color="#00b574" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Inventory</Typography>
+        <Typography color="#07100dff" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Inventory</Typography>
       </Breadcrumbs>
 
       <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>Inventory Overview</Typography>

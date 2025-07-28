@@ -12,10 +12,14 @@ import {
   Grid,
   Divider,
   Breadcrumbs,
-  Link
+  Link,
+  InputAdornment,
+  IconButton
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import baseurl from '../ApiService/ApiService';
 
 export default function VendorRegistrationForm() {
@@ -37,6 +41,8 @@ export default function VendorRegistrationForm() {
   });
 
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,6 +57,18 @@ export default function VendorRegistrationForm() {
         [name]: null
       });
     }
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleClickShowConfirmPassword = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const handleMouseDownPassword = (e) => {
+    e.preventDefault();
   };
 
   const validateForm = () => {
@@ -115,7 +133,6 @@ export default function VendorRegistrationForm() {
 
       if (response.ok) {
         const data = await response.json();
-        // console.log('Vendor created:', data);
         alert('Vendor/Farmer account created successfully!');
         navigate('/vendors');
       } else {
@@ -129,19 +146,13 @@ export default function VendorRegistrationForm() {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
-        aria-label="breadcrumb"
-        sx={{ mb: 2 }}
-      >
-        <Link underline="hover" href="/" sx={{ color: '#00A67E', fontWeight: 500, fontSize: '0.875rem' }}>
-          Dashboard
-        </Link>
-        <Typography color="text.primary" sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
-          Vendor/Farmer Management
-        </Typography>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/vendors">Vendor/Farmar Management</Link>
+        <Typography color="text.primary">Create Vendor/Farmar Management</Typography>
       </Breadcrumbs>
+       <Typography variant="h5" fontWeight="bold" gutterBottom>Add New Vendor/Farmer</Typography>
 
       <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
         <form onSubmit={handleSubmit}>
@@ -318,13 +329,27 @@ export default function VendorRegistrationForm() {
                 fullWidth
                 label="Password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={handleChange}
                 error={!!errors.password}
                 helperText={errors.password}
                 margin="normal"
                 required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
             </Grid>
 
@@ -333,13 +358,27 @@ export default function VendorRegistrationForm() {
                 fullWidth
                 label="Confirm Password"
                 name="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword}
                 margin="normal"
                 required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle confirm password visibility"
+                        onClick={handleClickShowConfirmPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
             </Grid>
           </Grid>

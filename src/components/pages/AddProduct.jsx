@@ -47,7 +47,7 @@ const AddProduct = () => {
     unit: '',
     price: '',
     is_seasonal: 'false',
-    season_type: 'all-season',
+    season_type: 'All Season',
     category: '',
     is_active: '',
     season_start: '',
@@ -138,10 +138,7 @@ const AddProduct = () => {
       !formData.product_name ||
       !formData.unit ||
       !formData.price ||
-      !formData.category ||
-      !formData.cgst ||
-      !formData.sgst ||
-      !formData.delivery_fee
+      !formData.category
     ) {
       setError('Please fill all required fields including CGST, SGST and Delivery Fee');
       return;
@@ -166,7 +163,10 @@ const AddProduct = () => {
     const productFormData = new FormData();
     const dataToSend = {
       ...formData,
-      is_seasonal: formData.is_seasonal === 'true' ? formData.season_type : 'all-season',
+      is_seasonal: formData.is_seasonal === 'true' ? formData.season_type : 'All Season',
+      cgst: formData.cgst ? parseFloat(formData.cgst) : null,
+      sgst: formData.sgst ? parseFloat(formData.sgst) : null,
+      delivery_fee: formData.delivery_fee ? parseFloat(formData.delivery_fee) : null,
     };
 
     Object.keys(dataToSend).forEach((key) => {
@@ -205,21 +205,19 @@ const AddProduct = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f7', minHeight: '100vh', py: 3 }}>
-      <Container maxWidth="lg">
+    <Box>
         <Snackbar open={success} autoHideDuration={3000} onClose={() => setSuccess(false)}>
           <Alert severity="success" variant="filled">
             Product created successfully!
           </Alert>
         </Snackbar>
-
         <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
-          <Link underline="hover" color="inherit" href="/">Dashboard</Link>
-          <Link underline="hover" color="inherit" href="/product-management">Product Management</Link>
-          <Typography color="textPrimary">Add Product</Typography>
+          <Link underline="hover" href="/">Dashboard</Link>
+          <Link underline="hover" href="/products">Product Management</Link>
+          <Typography color="text.primary">Add Product</Typography>
         </Breadcrumbs>
 
-        <Typography variant="h4" fontWeight="bold" gutterBottom>Create New Product</Typography>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>Create New Product</Typography>
 
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
@@ -246,7 +244,7 @@ const AddProduct = () => {
 
               <FormControl fullWidth required>
                 <InputLabel>Status</InputLabel>
-                <Select label= "is_active" name="is_active" value={formData.is_active} onChange={handleInputChange}>
+                <Select label="is_active" name="is_active" value={formData.is_active} onChange={handleInputChange}>
                   <MenuItem value="Available">Available</MenuItem>
                   <MenuItem value="Unavailable">Unavailable</MenuItem>
                 </Select>
@@ -272,7 +270,7 @@ const AddProduct = () => {
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
                   <FormControl fullWidth required>
                     <InputLabel>Season Type</InputLabel>
-                    <Select label= "season_type" name="season_type" value={formData.season_type} onChange={handleInputChange}>
+                    <Select label="season_type" name="season_type" value={formData.season_type} onChange={handleInputChange}>
                       <MenuItem value="summer">Summer</MenuItem>
                       <MenuItem value="winter">Winter</MenuItem>
                       <MenuItem value="spring">Spring</MenuItem>
@@ -290,9 +288,9 @@ const AddProduct = () => {
 
             {/* GST & Delivery Fee */}
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
-              <TextField label="CGST (%)" name="cgst" value={formData.cgst} onChange={handleInputChange} required fullWidth />
-              <TextField label="SGST (%)" name="sgst" value={formData.sgst} onChange={handleInputChange} required fullWidth />
-              <TextField label="Delivery Fee (₹)" name="delivery_fee" value={formData.delivery_fee} onChange={handleInputChange} required fullWidth />
+              <TextField label="CGST (%)" name="cgst" value={formData.cgst} onChange={handleInputChange} fullWidth />
+              <TextField label="SGST (%)" name="sgst" value={formData.sgst} onChange={handleInputChange} fullWidth />
+              <TextField label="Delivery Fee (₹)" name="delivery_fee" value={formData.delivery_fee} onChange={handleInputChange} fullWidth />
             </Box>
 
             {/* Image Upload */}
@@ -319,10 +317,9 @@ const AddProduct = () => {
             <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
           </Box>
         </form>
-      </Container>
     </Box>
   );
 };
 
 export default AddProduct;
- 
+

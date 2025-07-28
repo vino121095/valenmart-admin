@@ -9,10 +9,14 @@ import {
   Divider,
   Breadcrumbs,
   Link,
-  MenuItem
+  MenuItem,
+  InputAdornment,
+  IconButton
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import baseurl from '../ApiService/ApiService';
 
 export default function CustomerRegistrationForm() {
@@ -33,11 +37,25 @@ export default function CustomerRegistrationForm() {
   });
 
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: null }));
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleClickShowConfirmPassword = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const handleMouseDownPassword = (e) => {
+    e.preventDefault();
   };
 
   const validateForm = () => {
@@ -108,7 +126,7 @@ export default function CustomerRegistrationForm() {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box>
       <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
         <Link underline="hover" href="/" sx={{ color: '#00A67E', fontWeight: 500, fontSize: '0.875rem' }}>
           Dashboard
@@ -117,6 +135,7 @@ export default function CustomerRegistrationForm() {
           Customer Management
         </Typography>
       </Breadcrumbs>
+       <Typography variant="h5" fontWeight="bold" gutterBottom>Create New Customer</Typography>
 
       <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
         <form onSubmit={handleSubmit}>
@@ -180,11 +199,59 @@ export default function CustomerRegistrationForm() {
 
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth type="password" label="Password" name="password" value={formData.password} onChange={handleChange} error={!!errors.password} helperText={errors.password} required />
+              <TextField
+                fullWidth
+                type={showPassword ? 'text' : 'password'}
+                label="Password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                error={!!errors.password}
+                helperText={errors.password}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth type="password" label="Confirm Password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} error={!!errors.confirmPassword} helperText={errors.confirmPassword} required />
+              <TextField
+                fullWidth
+                type={showConfirmPassword ? 'text' : 'password'}
+                label="Confirm Password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle confirm password visibility"
+                        onClick={handleClickShowConfirmPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
             </Grid>
           </Grid>
 

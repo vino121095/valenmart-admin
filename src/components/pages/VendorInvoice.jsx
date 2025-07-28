@@ -19,11 +19,14 @@ import {
     Select,
     FormControl,
     InputLabel,
-    CircularProgress
+    CircularProgress,
+    Breadcrumbs,
+    Link
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 // Map procurement status to MUI Chip colors; adjust or extend as needed
 const statusColor = {
@@ -210,10 +213,12 @@ export default function ProcurementInvoiceManagement() {
     const pendingTotal = pendingProcs.reduce((sum, p) => sum + calculateVendorAmount(p), 0);
 
     return (
-        <Box sx={{ p: 3 }}>
-            <Typography variant="h5" fontWeight="bold" mb={3}>
-                Vendor Procurement Invoices
-            </Typography>
+        <Box>
+            <Breadcrumbs separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00b574' }} />} sx={{ mb: 1 }}>
+                <Link color="#00b574" underline="hover" href="#" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Dashboard</Link>
+                <Typography color="#07100dff" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Vendor Invoice & Payment Tracking</Typography>
+            </Breadcrumbs>
+            <Typography variant="h5" fontWeight="bold" mb={3}>Vendor Invoice & Payment Tracking</Typography>
 
             {/* Tabs to switch invoice split */}
             <Stack direction="row" spacing={2} mb={3}>
@@ -356,7 +361,7 @@ export default function ProcurementInvoiceManagement() {
                                                 {(proc.status === 'Delivered' || proc.status === 'Received') && (
                                                     <MenuItem onClick={() => navigate(`/vendor-invoice-view/${proc.procurement_id}`)}>View Details</MenuItem>
                                                 )}
-                                                <MenuItem onClick={() => navigate(`/invoicehistory/${proc.procurement_id}`)}>Payment History</MenuItem>
+                                                <MenuItem onClick={() => navigate(`/vendor-invoice-history/${proc.procurement_id}`)}>Payment History</MenuItem>
                                             </Menu>
                                         )}
                                     </TableCell>

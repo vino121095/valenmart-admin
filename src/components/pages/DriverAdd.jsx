@@ -4,7 +4,6 @@ import {
   TextField,
   Button,
   Box,
-  Paper,
   Grid,
   FormControl,
   InputLabel,
@@ -13,11 +12,17 @@ import {
   Alert,
   CircularProgress,
   Card,
-  CardContent
+  CardContent,
+  InputAdornment,
+  IconButton, 
+  Breadcrumbs,
+  Link
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 const DriverAdd = () => {
   const [formData, setFormData] = useState({
@@ -45,6 +50,7 @@ const DriverAdd = () => {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showPassword, setShowPassword] = useState(false);
 
   const vehicleTypes = ['truck', 'Bike', 'Car', 'Van', 'Scooter'];
   const vehicleConditions = ['Excellent', 'Good', 'Fair', 'Poor'];
@@ -66,11 +72,19 @@ const DriverAdd = () => {
   };
 
   const handleFileChange = (e) => {
-    const { name, files } = e.target;
+    const { name, files: selectedFiles } = e.target;
     setFiles(prev => ({
       ...prev,
-      [name]: files[0]
+      [name]: selectedFiles[0]
     }));
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
   };
 
   const validateForm = () => {
@@ -121,7 +135,7 @@ const DriverAdd = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -131,7 +145,7 @@ const DriverAdd = () => {
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Add all form fields
       Object.keys(formData).forEach(key => {
         if (formData[key] !== null) {
@@ -190,12 +204,15 @@ const DriverAdd = () => {
   };
 
   return (
-    <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ color: '#00A67E', fontWeight: 'bold' }}>
-        Add New Driver
-      </Typography>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/delivery">Driver & Delivery Management</Link>
+        <Typography color="text.primary">Create Driver</Typography>
+      </Breadcrumbs>
+       <Typography variant="h5" fontWeight="bold" gutterBottom>Add New Driver</Typography>
 
-      <Card sx={{ maxWidth: 1200, margin: '0 auto' }}>
+      <Card>
         <CardContent>
           {message.text && (
             <Alert severity={message.type} sx={{ mb: 2 }}>
@@ -251,10 +268,24 @@ const DriverAdd = () => {
                   fullWidth
                   label="Password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handleInputChange}
                   required
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
                 />
               </Grid>
 

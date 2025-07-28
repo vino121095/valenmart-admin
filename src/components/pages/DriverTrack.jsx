@@ -7,10 +7,13 @@ import {
   Button,
   Chip,
   Avatar,
-  Stack
+  Stack,
+  Breadcrumbs, 
+  Link
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 // Components for Map Markers and Legend
 function DriverMarker({ name, row, col, color }) {
@@ -108,14 +111,12 @@ export default function DriverTrack() {
   }, []);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#f4f4f8', minHeight: '100vh' }}>
-      {/* <Typography variant="body2" color="green">Dashboard &gt; Driver & Delivery Management</Typography> */}
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-        <Typography variant="h5" fontWeight="bold" mt={1} mb={3}>Driver & Delivery Management</Typography>
-        <Button variant="contained" color="success" onClick={() => navigate('/driveradd')}>Add Driver</Button>
-      </Box>
-
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Typography color="text.primary">Driver & Delivery Management</Typography>
+      </Breadcrumbs>
+      <Typography variant="h5" fontWeight="bold" mt={1} mb={3}>Driver & Delivery Management</Typography>
       <Stack direction="row" spacing={2} mb={3}>
         <Button variant="outlined" onClick={() => navigate('/delivery')}>Driver Accounts</Button>
         <Button variant="outlined" onClick={() => navigate('/drivertask')}>Assign Tasks</Button>

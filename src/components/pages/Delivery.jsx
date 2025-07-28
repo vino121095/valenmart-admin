@@ -25,8 +25,11 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
+  Breadcrumbs,
+  Link
 } from '@mui/material';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -245,10 +248,36 @@ export default function DeliveryManagement() {
 };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize="small" />}
+        aria-label="breadcrumb"
+        sx={{ mb: 2 }}
+      >
+        <Link
+          underline="hover"
+          href="/"
+          sx={{
+            color: '#00A67E',
+            fontWeight: 500,
+            fontSize: '0.875rem'
+          }}
+        >
+          Dashboard
+        </Link>
+        <Typography
+          sx={{
+            color: '#070d0cff',
+            fontWeight: 500,
+            fontSize: '0.875rem'
+          }}
+        >
+          Driver & Delivery Management
+        </Typography>
+      </Breadcrumbs>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5" fontWeight="bold">Driver & Delivery Management</Typography>
-        <Button variant="contained" color="success" onClick={() => navigate('/driveradd')}>Add Driver</Button>
+        <Button variant="contained" onClick={() => navigate('/driveradd')}>Add Driver</Button>
       </Box>
 
       <Stack direction="row" spacing={2} mb={3}>

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Paper, Avatar, Button, Divider, Rating } from '@mui/material';
+import { Box, Typography, Grid, Paper, Avatar, Button, Divider, Rating, Breadcrumbs, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -61,10 +62,11 @@ export default function VendorActive() {
   }, []);
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        Vendor/Farmer Management
-      </Typography>
+    <Box>
+       <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Typography color="text.primary">Vendor/Farmar Management</Typography>
+      </Breadcrumbs>
 
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid item xs={12} sm={4}>

@@ -4,12 +4,13 @@ import {
   Stack, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, TextField, Typography, Select,
   FormControl, InputLabel, MenuItem as SelectItem, InputAdornment,
-  CircularProgress, Tab, Tabs
+  CircularProgress, Tab, Tabs, Breadcrumbs, Link
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import baseurl from '../ApiService/ApiService';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 const statusColor = {
   'Delivered': 'success',
@@ -127,8 +128,12 @@ export default function InvoiceManagement() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" fontWeight="bold" mb={3}>Invoice & Payment Tracking</Typography>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00b574' }} />} sx={{ mb: 1 }}>
+        <Link color="#00b574" underline="hover" href="#" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Dashboard</Link>
+        <Typography color="#07100dff" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Customer Invoice & Payment Tracking</Typography>
+      </Breadcrumbs>
+      <Typography variant="h5" fontWeight="bold" mb={3}>Customer Invoice & Payment Tracking</Typography>
 
       {/* Tabs to switch invoice split */}
       <Stack direction="row" spacing={2} mb={3}>

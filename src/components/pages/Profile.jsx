@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import baseurl from '../ApiService/ApiService';
+import { IconButton, InputAdornment } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const AdminProfileForm = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +22,24 @@ const AdminProfileForm = () => {
   const [passwordMsg, setPasswordMsg] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
+  const [showPassword, setShowPassword] = useState({
+    newPassword: false,
+    confirmPassword: false
+  });
+
   const token = localStorage.getItem('authToken');
+
+  // Toggle password visibility
+  const handleClickShowPassword = (field) => {
+    setShowPassword({
+      ...showPassword,
+      [field]: !showPassword[field]
+    });
+  };
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
 
   // Fetch admin profile
   useEffect(() => {
@@ -199,10 +218,10 @@ const AdminProfileForm = () => {
       {/* Password Change Form */}
       <h3 style={{ marginBottom: '20px', color: '#333' }}>Change Password</h3>
       <form onSubmit={handlePasswordSubmit}>
-        <div style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: '16px', position: 'relative' }}>
           <label style={{ fontWeight: 500, display: 'block', marginBottom: '6px' }}>New Password</label>
           <input
-            type="password"
+            type={showPassword.newPassword ? 'text' : 'password'}
             name="newPassword"
             value={passwordData.newPassword}
             onChange={handlePasswordChange}
@@ -213,15 +232,32 @@ const AdminProfileForm = () => {
               padding: '10px 14px',
               border: '1px solid #ccc',
               borderRadius: '8px',
-              fontSize: '14px'
+              fontSize: '14px',
+              paddingRight: '40px' // Make space for the icon
             }}
           />
+          <InputAdornment position="end" style={{
+            position: 'absolute',
+            right: '10px',
+            top: '50px',
+            transform: 'translateY(-50%)'
+          }}>
+            <IconButton
+              aria-label="toggle password visibility"
+              onClick={() => handleClickShowPassword('newPassword')}
+              onMouseDown={handleMouseDownPassword}
+              edge="end"
+              size="small"
+            >
+              {showPassword.newPassword ? <VisibilityOff /> : <Visibility />}
+            </IconButton>
+          </InputAdornment>
         </div>
 
-        <div style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: '16px', position: 'relative' }}>
           <label style={{ fontWeight: 500, display: 'block', marginBottom: '6px' }}>Confirm Password</label>
           <input
-            type="password"
+            type={showPassword.confirmPassword ? 'text' : 'password'}
             name="confirmPassword"
             value={passwordData.confirmPassword}
             onChange={handlePasswordChange}
@@ -232,9 +268,26 @@ const AdminProfileForm = () => {
               padding: '10px 14px',
               border: '1px solid #ccc',
               borderRadius: '8px',
-              fontSize: '14px'
+              fontSize: '14px',
+              paddingRight: '40px' // Make space for the icon
             }}
-          />
+          />  
+          <InputAdornment position="end" style={{
+            position: 'absolute',
+            right: '10px',
+            top: '50px',
+            transform: 'translateY(-50%)'
+          }}>
+            <IconButton
+              aria-label="toggle password visibility"
+              onClick={() => handleClickShowPassword('confirmPassword')}
+              onMouseDown={handleMouseDownPassword}
+              edge="end"
+              size="small"
+            >
+              {showPassword.confirmPassword ? <VisibilityOff /> : <Visibility />}
+            </IconButton>
+          </InputAdornment>
         </div>
 
         <button

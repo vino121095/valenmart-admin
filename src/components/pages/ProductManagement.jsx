@@ -124,7 +124,7 @@ const ProductManagement = () => {
             Winter: data.filter(item => item.is_seasonal === 'winter').length,
             Spring: data.filter(item => item.is_seasonal === 'spring').length,
             Autumn: data.filter(item => item.is_seasonal === 'autumn').length,
-            AllSeason: data.filter(item => item.is_seasonal === 'all-season').length
+            AllSeason: data.filter(item => item.is_seasonal === 'All Season').length
         });
     };
 
@@ -178,7 +178,7 @@ const ProductManagement = () => {
                 value = 'Autumn'
                 color = '#795548'; // Brown
                 break;
-            case 'all-season':
+            case 'All Season':
                 value = 'All Season'
                 color = '#9C27B0'; // Purple
                 break;
@@ -289,7 +289,7 @@ const ProductManagement = () => {
         cancelEditing();
         
         setSelectedTab(newValue);
-        const tabFilters = ['all', 'summer', 'winter', 'spring', 'autumn', 'all-season'];
+        const tabFilters = ['all', 'summer', 'winter', 'spring', 'autumn', 'All Season'];
         handleFilterChange(tabFilters[newValue]);
     };
 
@@ -491,7 +491,7 @@ const ProductManagement = () => {
         { label: `Winter (${orderCounts.Winter})`, value: 'winter' },
         { label: `Spring (${orderCounts.Spring})`, value: 'spring' },
         { label: `Autumn (${orderCounts.Autumn})`, value: 'autumn' },
-        { label: `All Season (${orderCounts.AllSeason})`, value: 'all-season' }
+        { label: `All Season (${orderCounts.AllSeason})`, value: 'All Season' }
     ];
 
     // Render Amount Cell with Edit Functionality
@@ -642,10 +642,10 @@ const ProductManagement = () => {
                                 sx={{
                                     borderRadius: 2,
                                     px: 3,
-                                    backgroundColor: 'success.dark',
-                                    '&:hover': {
-                                        backgroundColor: 'success.main',
-                                    },
+                                    // backgroundColor: 'success.dark',
+                                    // '&:hover': {
+                                    //     backgroundColor: 'success.main',
+                                    // },
                                     mt: { xs: 2, md: 0 },
                                     marginLeft: "20px"
                                 }}

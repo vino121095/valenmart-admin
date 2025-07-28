@@ -137,19 +137,19 @@ const CreateCategory = () => {
     if (validateForm()) {
       try {
         setLoading(true);
-        
+
         // Create FormData object to send to the API
         const formDataToSend = new FormData();
         formDataToSend.append("category_name", formData.category_name);
-        
+
         if (formData.category_description) {
           formDataToSend.append("category_description", formData.category_description);
         }
-        
+
         if (imageFile) {
           formDataToSend.append("category_image", imageFile);
         }
-        
+
         // Make the API call
         const response = await fetch(
           `${baseurl}/api/category/create`,
@@ -159,19 +159,19 @@ const CreateCategory = () => {
             // Don't set Content-Type header when using FormData, let the browser set it
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        
+
         setSnackbar({
           open: true,
           message: "Category created successfully!",
           severity: "success",
         });
-        
+
         // Navigate back to categories list after a short delay
         setTimeout(() => {
           navigate("/product-category");
@@ -194,51 +194,12 @@ const CreateCategory = () => {
   };
 
   return (
-    <Box sx={{ padding: 3, maxWidth: "100%" }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-        <BackButton 
-          aria-label="back" 
-          onClick={() => navigate("/categories")}
-        >
-          <ArrowBackIcon />
-        </BackButton>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-        >
-          <Link
-            underline="hover"
-            href="/"
-            sx={{
-              color: "#00AB6B",
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            Dashboard
-          </Link>
-          <Link
-            underline="hover"
-            href="/categories"
-            sx={{
-              color: "#00AB6B",
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            Product Management
-          </Link>
-          <Typography
-            color="text.primary"
-            sx={{
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            Create Category
-          </Typography>
+    <Box>
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+          <Link underline="hover" href="/">Dashboard</Link>
+          <Link underline="hover" href="/product-category">Product Category</Link>
+          <Typography color="text.primary">Create Product Category</Typography>
         </Breadcrumbs>
-      </Box>
 
       <Typography
         variant="h5"
@@ -384,13 +345,13 @@ const CreateCategory = () => {
           >
             <CancelButton
               variant="outlined"
-              onClick={() => navigate("/categories")}
+              onClick={() => navigate("/product-category")}
               disabled={loading}
             >
               Cancel
             </CancelButton>
-            <SubmitButton 
-              type="submit" 
+            <SubmitButton
+              type="submit"
               variant="contained"
               disabled={loading}
             >

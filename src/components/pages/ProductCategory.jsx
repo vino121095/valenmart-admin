@@ -228,7 +228,7 @@ const handleDeleteConfirm = async () => {
   };
 
   return (
-    <Box sx={{ padding: 3, maxWidth: "100%" }}>
+    <Box>
       <Breadcrumbs
         separator={<NavigateNextIcon fontSize="small" />}
         aria-label="breadcrumb"
@@ -252,7 +252,7 @@ const handleDeleteConfirm = async () => {
             fontSize: '0.875rem'
           }}
         >
-          Product Management
+          Product Category
         </Typography>
       </Breadcrumbs>
 
@@ -300,10 +300,10 @@ const handleDeleteConfirm = async () => {
               sx={{
                 borderRadius: 2,
                 px: 3,
-                backgroundColor: "success.dark",
-                "&:hover": {
-                  backgroundColor: "success.main",
-                },
+                // backgroundColor: "success.dark",
+                // "&:hover": {
+                //   backgroundColor: "success.main",
+                // },
                 mt: { xs: 2, md: 0 },
                 marginLeft: "20px",
               }}
@@ -322,8 +322,8 @@ const handleDeleteConfirm = async () => {
       ) : (
         <StyledTableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }}>
-            <StyledTableHead>
-              <TableRow>
+            <StyledTableHead sx={{color: "#00B074"}}>
+              <TableRow sx={{color: "#00B074"}}>
                 <StyledTableCell>Category ID</StyledTableCell>
                 <StyledTableCell>Category Name</StyledTableCell>
                 <StyledTableCell>Category Image</StyledTableCell>

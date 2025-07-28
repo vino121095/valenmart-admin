@@ -93,13 +93,13 @@ const BackButton = styled(IconButton)(({ theme }) => ({
 const EditCategory = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  
+
   const [formData, setFormData] = useState({
     cid: "",
     category_name: "",
     category_description: "",
   });
-  
+
   const [originalImage, setOriginalImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [newImageFile, setNewImageFile] = useState(null);
@@ -121,11 +121,11 @@ const EditCategory = () => {
     try {
       setLoading(true);
       const response = await fetch(`${baseurl}/api/category/${id}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      
+
       const categoryData = await response.json();
       // console.log(categoryData.data);
       setFormData({
@@ -133,12 +133,12 @@ const EditCategory = () => {
         category_name: categoryData.data.category_name,
         category_description: categoryData.data.category_description || "",
       });
-      
+
       if (categoryData.data.category_image) {
         setOriginalImage(categoryData.data.category_image);
         setImagePreview(
-          categoryData.data.category_image.startsWith('http') 
-            ? categoryData.data.category_image 
+          categoryData.data.category_image.startsWith('http')
+            ? categoryData.data.category_image
             : `${baseurl}/${categoryData.data.category_image}`
         );
       }
@@ -186,20 +186,20 @@ const EditCategory = () => {
     if (validateForm()) {
       try {
         setSubmitting(true);
-        
+
         // Create FormData object to send to the API
         const formDataToSend = new FormData();
         formDataToSend.append("category_name", formData.category_name);
-        
+
         if (formData.category_description) {
           formDataToSend.append("category_description", formData.category_description);
         }
-        
+
         // Only append image if a new one was selected
         if (newImageFile) {
           formDataToSend.append("category_image", newImageFile);
         }
-        
+
         // Make the API call to update the category
         const response = await fetch(
           `${baseurl}/api/category/update/${id}`,
@@ -209,19 +209,19 @@ const EditCategory = () => {
             // Don't set Content-Type header when using FormData, let the browser set it
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        
+
         setSnackbar({
           open: true,
           message: "Category updated successfully!",
           severity: "success",
         });
-        
+
         // Navigate back to categories list after a short delay
         setTimeout(() => {
           navigate("/product-category");
@@ -252,52 +252,12 @@ const EditCategory = () => {
   }
 
   return (
-    <Box sx={{ padding: 3, maxWidth: "100%" }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-        <BackButton 
-          aria-label="back" 
-          onClick={() => navigate("/categories")}
-        >
-          <ArrowBackIcon />
-        </BackButton>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-        >
-          <Link
-            underline="hover"
-            href="/"
-            sx={{
-              color: "#00AB6B",
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            Dashboard
-          </Link>
-          <Link
-            underline="hover"
-            onClick={() => navigate("/categories")}
-            sx={{
-              color: "#00AB6B",
-              fontWeight: 500,
-              fontSize: "0.875rem",
-              cursor: "pointer",
-            }}
-          >
-            Product Management
-          </Link>
-          <Typography
-            color="text.primary"
-            sx={{
-              fontWeight: 500,
-              fontSize: "0.875rem",
-            }}
-          >
-            Edit Category
-          </Typography>
-        </Breadcrumbs>
-      </Box>
+    <Box>
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Link underline="hover" href="/">Dashboard</Link>
+        <Link underline="hover" href="/product-category">Product Category</Link>
+        <Typography color="text.primary">Edit Category</Typography>
+      </Breadcrumbs>
 
       <Typography
         variant="h5"
@@ -455,8 +415,8 @@ const EditCategory = () => {
             >
               Cancel
             </CancelButton>
-            <SaveButton 
-              type="submit" 
+            <SaveButton
+              type="submit"
               variant="contained"
               disabled={submitting}
             >

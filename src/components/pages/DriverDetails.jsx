@@ -11,27 +11,48 @@ import {
   CircularProgress,
   Box
 } from '@mui/material';
+import { useParams } from 'react-router-dom';
 import baseurl from '../ApiService/ApiService';
 
 const DriverDetails = () => {
+  const { id: driverId } = useParams();
   const [completedTodayList, setCompletedTodayList] = useState([]);
+  const [driverInfo, setDriverInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchCompletedDeliveries = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(baseurl + '/api/delivery/all');
-        if (!response.ok) {
+        // Fetch deliveries
+        const deliveryResponse = await fetch(baseurl + '/api/delivery/all');
+        if (!deliveryResponse.ok) {
           throw new Error('Failed to fetch deliveries');
         }
-        const data = await response.json();
+        const deliveryData = await deliveryResponse.json();
+        
+        // Fetch driver info if driverId is provided
+        if (driverId) {
+          const driverResponse = await fetch(baseurl + '/api/driver-details/all');
+          if (driverResponse.ok) {
+            const driverData = await driverResponse.json();
+            const driver = driverData.data?.find(d => d.did === parseInt(driverId));
+            setDriverInfo(driver);
+          }
+        }
         
         // Filter for today's completed deliveries
         const today = new Date().toISOString().split('T')[0];
-        const todayCompleted = data.filter(delivery => 
+        let todayCompleted = deliveryData.filter(delivery => 
           delivery.date === today && delivery.status === 'Completed'
         );
+        
+        // If driverId is provided, filter for specific driver
+        if (driverId) {
+          todayCompleted = todayCompleted.filter(delivery => 
+            delivery.driver?.did === parseInt(driverId)
+          );
+        }
         
         setCompletedTodayList(todayCompleted);
       } catch (err) {
@@ -41,8 +62,8 @@ const DriverDetails = () => {
       }
     };
 
-    fetchCompletedDeliveries();
-  }, []);
+    fetchData();
+  }, [driverId]);
 
   // Calculate total charges
   const totalCharges = completedTodayList.reduce((sum, delivery) => {
@@ -68,8 +89,13 @@ const DriverDetails = () => {
   return (
     <div style={{ padding: '20px' }}>
       <Typography variant="h5" gutterBottom>
-        Today's Completed Deliveries
+        {driverInfo ? `${driverInfo.first_name} ${driverInfo.last_name}'s` : 'Today\'s'} Completed Deliveries
       </Typography>
+      {driverInfo && (
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+          Vehicle: {driverInfo.vehicle_number} | Status: {driverInfo.status}
+        </Typography>
+      )}
       
       {completedTodayList.length === 0 ? (
         <Typography variant="body1" mt={2}>

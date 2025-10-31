@@ -151,7 +151,7 @@ const AdminProfileForm = () => {
       padding: '30px 40px',
       borderRadius: '10px',
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-      fontFamily: 'sans-serif'
+      fontFamily: 'Inter, sans-serif'
     }}>
       <h2 style={{ marginBottom: '20px', color: '#333' }}>Admin Profile</h2>
 

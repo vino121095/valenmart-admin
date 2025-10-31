@@ -17,6 +17,8 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { green, yellow } from '@mui/material/colors';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
@@ -26,6 +28,7 @@ export default function CustomerManagementView1() {
   const { id } = useParams(); // from route: /customerview1/:id
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [orderDirection, setOrderDirection] = useState({});
 
   useEffect(() => {
     fetch(`${baseurl}/api/customer-profile/all`)
@@ -63,6 +66,63 @@ export default function CustomerManagementView1() {
   if (!customer) {
     return <Typography sx={{ p: 4, color: 'error.main' }}>Customer not found.</Typography>;
   }
+
+  const handleSort = (column) => {
+    const isAsc = orderDirection[column] === 'asc';
+    setOrderDirection({
+      ...orderDirection,
+      [column]: isAsc ? 'desc' : 'asc',
+    });
+
+    const sortedOrders = [...orders].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch(column) {
+        case 'orderId':
+          aValue = a.oid;
+          bValue = b.oid;
+          break;
+        case 'orderDate':
+          aValue = new Date(a.order_date);
+          bValue = new Date(b.order_date);
+          break;
+        case 'amount':
+          aValue = parseFloat(a.total_amount || 0);
+          bValue = parseFloat(b.total_amount || 0);
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        default:
+          aValue = a[column];
+          bValue = b[column];
+      }
+      
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (isAsc) {
+        return String(aValue).localeCompare(String(bValue));
+      } else {
+        return String(bValue).localeCompare(String(aValue));
+      }
+    });
+    
+    setOrders(sortedOrders);
+  };
+
+  const getSortIcon = (column) => {
+    if (!orderDirection[column]) return null;
+    return orderDirection[column] === 'asc' ?
+      <ArrowUpwardIcon fontSize="small" /> :
+      <ArrowDownwardIcon fontSize="small" />;
+  };
 
   return (
     <Box>
@@ -111,13 +171,81 @@ export default function CustomerManagementView1() {
       {/* Orders Table (placeholder) */}
       <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
         <Table>
-          <TableHead sx={{ bgcolor: '#2CA66F' }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white' }}>Order ID</TableCell>
-              <TableCell sx={{ color: 'white' }}>Order Date</TableCell>
-              <TableCell sx={{ color: 'white' }}>Amount</TableCell>
-              <TableCell sx={{ color: 'white' }}>Status</TableCell>
-              <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+          <TableHead sx={{ bgcolor: '#00B074' }}>
+            <TableRow sx={{ height: 60 }}>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('orderId')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Order ID
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('orderId')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('orderDate')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Order Date
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('orderDate')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('amount')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Amount
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('amount')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('status')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Status
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -129,18 +257,24 @@ export default function CustomerManagementView1() {
               </TableRow>
             ) : (
               orders.map((order) => (
-                <TableRow key={order.oid}>
-                  <TableCell>{order.oid}</TableCell>
-                  <TableCell>{order.order_date}</TableCell>
-                  <TableCell>{order.total_amount}</TableCell>
-                  <TableCell>
+                <TableRow 
+                  key={order.oid}
+                  sx={{
+                    '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                    height: 80
+                  }}
+                >
+                  <TableCell sx={{ py: 2 }}>{order.oid}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{order.order_date}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{order.total_amount}</TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     {order.status === 'Delivered' ? (
                       <Chip label="Delivered" size="small" sx={{ bgcolor: green[100], color: green[800] }} />
                     ) : (
                       <Chip label={order.status} size="small" sx={{ bgcolor: yellow[100], color: '#B28900' }} />
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <Button
                       variant="outlined"
                       size="small"

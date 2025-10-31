@@ -29,9 +29,9 @@ import {
 import {
     ArrowUpward as ArrowUpwardIcon,
     ArrowDownward as ArrowDownwardIcon,
-    NavigateNext as NavigateNextIcon, 
-    Edit as EditIcon, 
-    Delete as DeleteIcon, 
+    NavigateNext as NavigateNextIcon,
+    Edit as EditIcon,
+    Delete as DeleteIcon,
     Visibility as VisibilityIcon,
     Save as SaveIcon,
     Cancel as CancelIcon
@@ -40,7 +40,7 @@ import { useNavigate } from 'react-router-dom';
 import baseurl from '../ApiService/ApiService';
 import img from '../assets/download.jpg';
 
-const ProductManagement = () => {
+const ProductManagement = ({ reportMode = false }) => {
     const [productData, setProductData] = useState([]);
     const [orderCounts, setOrderCounts] = useState({
         all: 0,
@@ -58,7 +58,7 @@ const ProductManagement = () => {
     const [orderDirection, setOrderDirection] = useState({});
     const [selectedTab, setSelectedTab] = useState(0);
     const [paginationPage, setPaginationPage] = useState(1);
-    
+
     // Inline editing state
     const [editingProductId, setEditingProductId] = useState(null);
     const [editingAmount, setEditingAmount] = useState('');
@@ -97,12 +97,12 @@ const ProductManagement = () => {
                         action: 'View'
                     };
                 });
-                
-                console.log("Mapped data with seasons:", mappedData.map(p => ({id: p.id, name: p.name, season: p.is_seasonal})));
-                
+
+                console.log("Mapped data with seasons:", mappedData.map(p => ({ id: p.id, name: p.name, season: p.is_seasonal })));
+
                 setProductData(mappedData);
                 setFilteredOrders(mappedData);
-                
+
                 // Update counts for all season types
                 updateOrderCounts(mappedData);
             })
@@ -116,8 +116,8 @@ const ProductManagement = () => {
 
     // Fixed function to update order counts for all seasons
     const updateOrderCounts = (data) => {
-        console.log("Updating counts for data:", data.map(p => ({id: p.id, season: p.is_seasonal})));
-        
+        console.log("Updating counts for data:", data.map(p => ({ id: p.id, season: p.is_seasonal })));
+
         setOrderCounts({
             all: data.length,
             Summer: data.filter(item => item.is_seasonal === 'summer').length,
@@ -222,7 +222,7 @@ const ProductManagement = () => {
     const handleSort = (column) => {
         // Cancel any editing when sorting
         cancelEditing();
-        
+
         const isAsc = orderDirection[column] === 'asc';
         setOrderDirection({
             ...orderDirection,
@@ -232,8 +232,12 @@ const ProductManagement = () => {
         // Apply sorting to filtered orders
         const sortedOrders = [...filteredOrders].sort((a, b) => {
             let aValue, bValue;
-            
-            switch(column) {
+
+            switch (column) {
+                case 'id':
+                    aValue = a.id;
+                    bValue = b.id;
+                    break;
                 case 'productname':
                     aValue = a.name;
                     bValue = b.name;
@@ -243,9 +247,11 @@ const ProductManagement = () => {
                     bValue = parseFloat(b.weightKg);
                     break;
                 case 'amount':
-                    // Remove currency symbol and convert to number
-                    aValue = parseFloat(a.amount.replace(/[^0-9.]/g, ''));
-                    bValue = parseFloat(b.amount.replace(/[^0-9.]/g, ''));
+                    // Safely handle amount - check if it's a string before replacing
+                    const amountA = typeof a.amount === 'string' ? a.amount : String(a.amount || '0');
+                    const amountB = typeof b.amount === 'string' ? b.amount : String(b.amount || '0');
+                    aValue = parseFloat(amountA.replace(/[^0-9.]/g, ''));
+                    bValue = parseFloat(amountB.replace(/[^0-9.]/g, ''));
                     break;
                 case 'season':
                     aValue = a.is_seasonal;
@@ -259,7 +265,7 @@ const ProductManagement = () => {
                     aValue = a[column];
                     bValue = b[column];
             }
-            
+
             // Handle non-numeric comparison
             if (isNaN(aValue) || isNaN(bValue)) {
                 if (isAsc) {
@@ -268,11 +274,11 @@ const ProductManagement = () => {
                     return String(bValue).localeCompare(String(aValue));
                 }
             }
-            
+
             // Handle numeric comparison
             return isAsc ? aValue - bValue : bValue - aValue;
         });
-        
+
         setFilteredOrders(sortedOrders);
     };
 
@@ -287,7 +293,7 @@ const ProductManagement = () => {
     const handleTabChange = (event, newValue) => {
         // Cancel any editing when changing tabs
         cancelEditing();
-        
+
         setSelectedTab(newValue);
         const tabFilters = ['all', 'summer', 'winter', 'spring', 'autumn', 'All Season'];
         handleFilterChange(tabFilters[newValue]);
@@ -296,7 +302,7 @@ const ProductManagement = () => {
     // Fixed filter function to correctly match season values
     const handleFilterChange = (filter) => {
         console.log(`Filtering by: ${filter}`);
-        
+
         if (filter === 'all') {
             setFilteredOrders(productData);
         } else {
@@ -305,11 +311,11 @@ const ProductManagement = () => {
                 console.log(`Comparing product season "${product.is_seasonal}" with filter "${filter}"`);
                 return product.is_seasonal === filter;
             });
-            
+
             console.log(`Filtered ${filtered.length} products for season: ${filter}`);
             setFilteredOrders(filtered);
         }
-        
+
         // Reset pagination
         setPaginationPage(1);
         setTablePage(0);
@@ -358,26 +364,26 @@ const ProductManagement = () => {
 
     const handleDeleteProduct = async (id) => {
         cancelEditing();
-        
+
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
                 // Use the correct API endpoint for deleting a product
                 const response = await fetch(`${baseurl}/api/product/delete/${id}`, {
                     method: 'DELETE',
                 });
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to delete product');
                 }
-                
+
                 // Refresh product list after deletion
                 const updatedProducts = productData.filter(product => product.id !== id);
                 setProductData(updatedProducts);
                 setFilteredOrders(updatedProducts);
-                
+
                 // Update counts for all seasons
                 updateOrderCounts(updatedProducts);
-                
+
                 alert('Product deleted successfully!');
             } catch (error) {
                 console.error('Error deleting product:', error);
@@ -458,7 +464,7 @@ const ProductManagement = () => {
 
             setProductData(updateProduct(productData));
             setFilteredOrders(updateProduct(filteredOrders));
-            
+
             // Show success feedback
             alert('Product price updated successfully!');
         } catch (error) {
@@ -472,14 +478,14 @@ const ProductManagement = () => {
 
     // Table Configuration
     const headerCells = [
-        { id: 'id', label: 'Product ID' },
+        { id: 'id', label: 'Product ID', sortable: true },
         { id: 'image', label: 'Product Image', sortable: false },
         { id: 'productname', label: 'Product Name', sortable: true },
         { id: 'weight', label: 'Weights in Kg', sortable: true },
         { id: 'amount', label: 'Amount', sortable: true },
         { id: 'season', label: 'Season', sortable: true },
         { id: 'status', label: 'Status', sortable: true },
-        { id: 'action', label: 'Action' },
+        { id: 'action', label: 'Action', sortable: false },
     ];
 
     const emptyRows = tablePage > 0 ? Math.max(0, (1 + tablePage) * rowsPerPage - filteredOrders.length) : 0;
@@ -497,7 +503,7 @@ const ProductManagement = () => {
     // Render Amount Cell with Edit Functionality
     const renderAmountCell = (row) => {
         const isEditing = editingProductId === row.id;
-        
+
         if (isEditing) {
             return (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -513,17 +519,17 @@ const ProductManagement = () => {
                         disabled={isSubmitting}
                     />
                     <Box sx={{ ml: 1 }}>
-                        <IconButton 
-                            size="small" 
-                            color="primary" 
+                        <IconButton
+                            size="small"
+                            color="primary"
                             onClick={() => saveAmount(row.id)}
                             disabled={isSubmitting}
                         >
                             <SaveIcon fontSize="small" />
                         </IconButton>
-                        <IconButton 
-                            size="small" 
-                            color="error" 
+                        <IconButton
+                            size="small"
+                            color="error"
                             onClick={cancelEditing}
                             disabled={isSubmitting}
                         >
@@ -533,11 +539,11 @@ const ProductManagement = () => {
                 </Box>
             );
         }
-        
+
         return (
-            <Box 
-                sx={{ 
-                    display: 'flex', 
+            <Box
+                sx={{
+                    display: 'flex',
                     alignItems: 'center',
                     cursor: 'pointer',
                     '&:hover': {
@@ -551,14 +557,14 @@ const ProductManagement = () => {
                 <Tooltip title="Click to edit price">
                     <Box>
                         {row.amount}
-                        <EditIcon 
-                            fontSize="small" 
-                            sx={{ 
-                                ml: 0.5, 
+                        <EditIcon
+                            fontSize="small"
+                            sx={{
+                                ml: 0.5,
                                 color: 'action.active',
                                 fontSize: '14px',
                                 opacity: 0.5
-                            }} 
+                            }}
                         />
                     </Box>
                 </Tooltip>
@@ -569,96 +575,104 @@ const ProductManagement = () => {
     return (
         <Box>
             {/* Breadcrumbs */}
-            <Breadcrumbs
-                separator={<NavigateNextIcon fontSize="small" />}
-                aria-label="breadcrumb"
-                sx={{ mb: 2 }}
-            >
-                <Link
-                    underline="hover"
-                    color="inherit"
-                    href="/"
-                    sx={{
-                        color: theme.palette.primary.main,
-                        fontWeight: 500,
-                        fontSize: '0.875rem'
-                    }}
+            {!reportMode && (
+                <Breadcrumbs
+                    separator={<NavigateNextIcon fontSize="small" />}
+                    aria-label="breadcrumb"
+                    sx={{ mb: 2 }}
                 >
-                    Dashboard
-                </Link>
+                    <Link
+                        underline="hover"
+                        color="inherit"
+                        href="/"
+                        sx={{
+                            color: theme.palette.primary.main,
+                            fontWeight: 500,
+                            fontSize: '0.875rem'
+                        }}
+                    >
+                        Dashboard
+                    </Link>
+                    <Typography
+                        color="text.primary"
+                        sx={{
+                            fontWeight: 500,
+                            fontSize: '0.875rem'
+                        }}
+                    >
+                        Product Management
+                    </Typography>
+                </Breadcrumbs>
+            )}
+
+            {/* Page Title */}
+            {!reportMode && (
                 <Typography
-                    color="text.primary"
+                    variant="h5"
+                    component="h1"
                     sx={{
-                        fontWeight: 500,
-                        fontSize: '0.875rem'
+                        fontWeight: 'bold',
+                        mb: 3
                     }}
                 >
                     Product Management
                 </Typography>
-            </Breadcrumbs>
-
-            {/* Page Title */}
-            <Typography
-                variant="h5"
-                component="h1"
-                sx={{
-                    fontWeight: 'bold',
-                    mb: 3
-                }}
-            >
-                Product Management
-            </Typography>
+            )}
 
             {/* Filter Tabs */}
             <Box sx={{ mt: 2, mb: 2 }}>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                        <Card
-                            variant="outlined"
-                            sx={{
-                                borderColor: 'success.main',
-                                bgcolor: '#00B0740D',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                flexWrap: 'wrap',
-                                p: 2,
-                                borderRadius: 2,
-                                boxShadow: 'none',
-                            }}
-                        >
-                            <Box sx={{ flex: 1, minWidth: 200 }}>
-                                <Typography variant="subtitle1" sx={{ color: 'success.main', fontWeight: 600 }}>
-                                    Create New Product
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Add vegetable details, images, pricing and seasonal availability
-                                </Typography>
-                            </Box>
-
-                            <Button
-                                variant="contained"
-                                onClick={handleNavigateToAddProduct}
+                {!reportMode && (
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                            <Card
+                                variant="outlined"
                                 sx={{
+                                    borderColor: 'success.main',
+                                    bgcolor: '#00B0740D',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                    p: 2,
                                     borderRadius: 2,
-                                    px: 3,
-                                    // backgroundColor: 'success.dark',
-                                    // '&:hover': {
-                                    //     backgroundColor: 'success.main',
-                                    // },
-                                    mt: { xs: 2, md: 0 },
-                                    marginLeft: "20px"
+                                    boxShadow: 'none',
                                 }}
                             >
-                                Create
-                            </Button>
-                        </Card>
+                                <Box sx={{ flex: 1, minWidth: 200 }}>
+                                    <Typography variant="subtitle1" sx={{ color: 'success.main', fontWeight: 600 }}>
+                                        Create New Product
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Add vegetable details, images, pricing and seasonal availability
+                                    </Typography>
+                                </Box>
+
+                                <Button
+                                    variant="contained"
+                                    onClick={handleNavigateToAddProduct}
+                                    sx={{
+                                        borderRadius: 2,
+                                        px: 3,
+                                        // backgroundColor: 'success.dark',
+                                        // '&:hover': {
+                                        //     backgroundColor: 'success.main',
+                                        // },
+                                        mt: { xs: 2, md: 0 },
+                                        marginLeft: "20px"
+                                    }}
+                                >
+                                    Create
+                                </Button>
+                            </Card>
+                        </Grid>
                     </Grid>
-                </Grid>
+                )}
                 <Box sx={{ width: '100%', mb: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 'medium', mt: 2 }}>
-                        By Season
-                    </Typography>
+                    {!reportMode && (
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'medium', mt: 2 }}>
+                            By Season
+                        </Typography>
+                    )}
                     <Tabs
                         value={selectedTab}
                         onChange={handleTabChange}
@@ -694,17 +708,22 @@ const ProductManagement = () => {
             {/* Order Table */}
             <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}>
                 <TableContainer>
-                    <Table sx={{ minWidth: 700 }} aria-label="order table">
+                    <Table sx={{ minWidth: 700 }} aria-label="customer table">
                         <TableHead>
                             <TableRow>
                                 {headerCells.map((cell) => (
                                     <TableCell
-                                        key={cell.id}
+                                        k key={cell.id}
                                         align={cell.id === 'action' ? 'center' : 'left'}
                                         sx={{
                                             backgroundColor: '#00B074',
                                             cursor: cell.sortable ? 'pointer' : 'default',
                                             color: '#fff',
+                                            fontWeight: 'bold',
+                                            py: 2,
+                                            '&:hover': cell.sortable ? {
+                                                backgroundColor: '#009e64',
+                                            } : {},
                                         }}
                                         onClick={() => cell.sortable && handleSort(cell.id)}
                                     >
@@ -728,10 +747,13 @@ const ProductManagement = () => {
                                         <TableRow
                                             hover
                                             key={row.id}
-                                            sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' } }}
+                                            sx={{
+                                                '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                                                height: 80
+                                            }}
                                         >
-                                            <TableCell>{row.id}</TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ py: 2 }}>{row.id}</TableCell>
+                                            <TableCell sx={{ py: 2 }}>
                                                 <img
                                                     src={`${baseurl}/${row.image}`}
                                                     alt={row.name}
@@ -742,36 +764,36 @@ const ProductManagement = () => {
                                                     }}
                                                 />
                                             </TableCell>
-                                            <TableCell>{row.name}</TableCell>
-                                            <TableCell>{row.weightKg}</TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ py: 2 }}>{row.name}</TableCell>
+                                            <TableCell sx={{ py: 2 }}>{row.weightKg}</TableCell>
+                                            <TableCell sx={{ py: 2 }}>
                                                 {renderAmountCell(row)}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ py: 2 }}>
                                                 <SeasonChip season={row.is_seasonal} />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ py: 2 }}>
                                                 <StatusChip status={row.status} />
                                             </TableCell>
-                                            <TableCell align="center">
-                                                <IconButton 
-                                                    color="primary" 
+                                            <TableCell align="left" sx={{ py: 2 }}>
+                                                <IconButton
+                                                    color="primary"
                                                     size="small"
                                                     onClick={() => handleViewProduct(row.id)}
                                                     disabled={editingProductId === row.id}
                                                 >
                                                     <VisibilityIcon />
                                                 </IconButton>
-                                                <IconButton 
-                                                    color="info" 
+                                                <IconButton
+                                                    color="info"
                                                     size="small"
                                                     onClick={() => handleEditProduct(row.id)}
                                                     disabled={editingProductId === row.id}
                                                 >
                                                     <EditIcon />
                                                 </IconButton>
-                                                <IconButton 
-                                                    color="error" 
+                                                <IconButton
+                                                    color="error"
                                                     size="small"
                                                     onClick={() => handleDeleteProduct(row.id)}
                                                     disabled={editingProductId === row.id}
@@ -783,7 +805,7 @@ const ProductManagement = () => {
                                     ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                                    <TableCell colSpan={8} align="left" sx={{ py: 3 }}>
                                         <Typography variant="body1" color="text.secondary">
                                             No products found
                                         </Typography>

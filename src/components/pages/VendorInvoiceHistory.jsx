@@ -21,6 +21,8 @@ import {
   Link
 } from '@mui/material';
 import { green, red, orange, blue } from '@mui/material/colors';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
@@ -30,6 +32,7 @@ export default function VendorInvoiceHistory() {
   const [procurement, setProcurement] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [orderDirection, setOrderDirection] = useState({});
 
   useEffect(() => {
     if (!procurementId) {
@@ -136,6 +139,67 @@ export default function VendorInvoiceHistory() {
   const getDisplayStatus = (status) => {
     if (status === 'Received') return 'Delivered';
     return status;
+  };
+
+  const handleSort = (column) => {
+    const isAsc = orderDirection[column] === 'asc';
+    setOrderDirection({
+      ...orderDirection,
+      [column]: isAsc ? 'desc' : 'asc',
+    });
+
+    const sortedPayments = [...paymentHistory].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch(column) {
+        case 'date':
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+          break;
+        case 'transactionId':
+          aValue = a.transactionId;
+          bValue = b.transactionId;
+          break;
+        case 'method':
+          aValue = a.method;
+          bValue = b.method;
+          break;
+        case 'amount':
+          aValue = parseFloat(a.amount || 0);
+          bValue = parseFloat(b.amount || 0);
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        default:
+          aValue = a[column];
+          bValue = b[column];
+      }
+      
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (isAsc) {
+        return String(aValue).localeCompare(String(bValue));
+      } else {
+        return String(bValue).localeCompare(String(aValue));
+      }
+    });
+    
+    setPaymentHistory(sortedPayments);
+  };
+
+  const getSortIcon = (column) => {
+    if (!orderDirection[column]) return null;
+    return orderDirection[column] === 'asc' ?
+      <ArrowUpwardIcon fontSize="small" /> :
+      <ArrowDownwardIcon fontSize="small" />;
   };
 
   return (
@@ -260,24 +324,70 @@ export default function VendorInvoiceHistory() {
       </Typography>
       <TableContainer component={Paper}>
         <Table size="small">
-          <TableHead sx={{ bgcolor: 'primary.main' }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white' }}>Date</TableCell>
-              <TableCell sx={{ color: 'white' }}>Transaction ID</TableCell>
-              <TableCell sx={{ color: 'white' }}>Payment Method</TableCell>
-              <TableCell sx={{ color: 'white' }}>Amount</TableCell>
-              <TableCell sx={{ color: 'white' }}>Status</TableCell>
+          <TableHead sx={{ bgcolor: '#00B074' }}>
+            <TableRow sx={{ height: 60 }}>
+              <TableCell 
+                sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                onClick={() => handleSort('date')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Date
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('date')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                onClick={() => handleSort('transactionId')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Transaction ID
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('transactionId')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                onClick={() => handleSort('method')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Payment Method
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('method')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                onClick={() => handleSort('amount')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Amount
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('amount')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                onClick={() => handleSort('status')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Status
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
+                </Box>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paymentHistory.length > 0 ? (
               paymentHistory.map((payment, index) => (
-                <TableRow key={index}>
-                  <TableCell>{payment.date}</TableCell>
-                  <TableCell>{payment.transactionId}</TableCell>
-                  <TableCell>{payment.method}</TableCell>
-                  <TableCell>₹{parseFloat(payment.amount).toFixed(2)}</TableCell>
-                  <TableCell>
+                <TableRow 
+                  key={index}
+                  sx={{
+                    '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                    height: 80
+                  }}
+                >
+                  <TableCell sx={{ py: 2 }}>{payment.date}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{payment.transactionId}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{payment.method}</TableCell>
+                  <TableCell sx={{ py: 2 }}>₹{parseFloat(payment.amount).toFixed(2)}</TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <Chip
                       label={payment.status}
                       sx={{

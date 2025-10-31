@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
@@ -132,20 +134,23 @@ function DriverRow({ driver, driverDeliveries, formatCurrency, onPaymentComplete
 
     return (
         <>
-            <TableRow>
-                <TableCell>
+            <TableRow sx={{
+                '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                height: 80
+            }}>
+                <TableCell sx={{ py: 2 }}>
                     <IconButton onClick={() => setOpen(!open)}>
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
                 </TableCell>
-                <TableCell>{`${driver.first_name} ${driver.last_name}`}</TableCell>
-                <TableCell>{driver.vehicle_number}</TableCell>
-                <TableCell>{driver.phone}</TableCell>
-                <TableCell>{filteredDeliveries.length}</TableCell>
-                <TableCell>
+                <TableCell sx={{ py: 2 }}>{`${driver.first_name} ${driver.last_name}`}</TableCell>
+                <TableCell sx={{ py: 2 }}>{driver.vehicle_number}</TableCell>
+                <TableCell sx={{ py: 2 }}>{driver.phone}</TableCell>
+                <TableCell sx={{ py: 2 }}>{filteredDeliveries.length}</TableCell>
+                <TableCell sx={{ py: 2 }}>
                     {formatCurrency(totalCharges)}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ py: 2 }}>
                     <IconButton onClick={(e) => handleMenuClick(e, driver.did)}>
                         <MoreVertIcon />
                     </IconButton>
@@ -158,7 +163,7 @@ function DriverRow({ driver, driverDeliveries, formatCurrency, onPaymentComplete
                         </MenuItem>
                     </Menu>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ py: 2 }}>
                     {paymentStatus === 'Receive' && (
                         <Button
                             variant={filteredDeliveries.length === 0 ? 'outlined' : 'contained'}
@@ -333,6 +338,9 @@ export default function DriverInvoice() {
     const [endDate, setEndDate] = useState('');
     const [filteredDeliveries, setFilteredDeliveries] = useState([]);
     const [error, setError] = useState('');
+    const [orderDirection, setOrderDirection] = useState({});
+    const [sortedUnpaidData, setSortedUnpaidData] = useState([]);
+    const [sortedPaidData, setSortedPaidData] = useState([]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -428,6 +436,63 @@ export default function DriverInvoice() {
         return Array.from(grouped.values());
     };
 
+    const handleSort = (column, data, setDataFn) => {
+        const isAsc = orderDirection[column] === 'asc';
+        setOrderDirection({
+            ...orderDirection,
+            [column]: isAsc ? 'desc' : 'asc',
+        });
+
+        const sortedData = [...data].sort((a, b) => {
+            let aValue, bValue;
+
+            switch (column) {
+                case 'driverName':
+                    aValue = `${a.driver.first_name} ${a.driver.last_name}`;
+                    bValue = `${b.driver.first_name} ${b.driver.last_name}`;
+                    break;
+                case 'vehicleNumber':
+                    aValue = a.driver.vehicle_number || '';
+                    bValue = b.driver.vehicle_number || '';
+                    break;
+                case 'phone':
+                    aValue = a.driver.phone || '';
+                    bValue = b.driver.phone || '';
+                    break;
+                case 'deliveries':
+                    aValue = a.deliveries.length;
+                    bValue = b.deliveries.length;
+                    break;
+                case 'amount':
+                    aValue = calculateTotalCharges(a.deliveries);
+                    bValue = calculateTotalCharges(b.deliveries);
+                    break;
+                default:
+                    aValue = a[column];
+                    bValue = b[column];
+            }
+
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+                return isAsc ? aValue - bValue : bValue - aValue;
+            }
+
+            if (isAsc) {
+                return String(aValue).localeCompare(String(bValue));
+            } else {
+                return String(bValue).localeCompare(String(aValue));
+            }
+        });
+
+        setDataFn(sortedData);
+    };
+
+    const getSortIcon = (column) => {
+        if (!orderDirection[column]) return null;
+        return orderDirection[column] === 'asc' ?
+            <ArrowUpwardIcon fontSize="small" /> :
+            <ArrowDownwardIcon fontSize="small" />;
+    };
+
     const calculateTotalCharges = (deliveries) =>
         deliveries.reduce((total, delivery) => total + (parseFloat(delivery.charges) || 0), 0);
 
@@ -435,6 +500,12 @@ export default function DriverInvoice() {
         // console.log(`Payment completed for driver ${driverId}, deliveries: ${deliveryIds}`);
         // Data will be refreshed automatically via refreshData callback
     };
+
+    // Initialize sorted data when filters change - MUST be before any returns
+    useEffect(() => {
+        setSortedUnpaidData(groupDeliveriesByDriver('Receive'));
+        setSortedPaidData(groupDeliveriesByDriver('Received'));
+    }, [filteredDeliveries]);
 
     if (loading) {
         return (
@@ -457,8 +528,8 @@ export default function DriverInvoice() {
         );
     }
 
-    const unpaidGroupedData = groupDeliveriesByDriver('Receive');
-    const paidGroupedData = groupDeliveriesByDriver('Received');
+    const unpaidGroupedData = sortedUnpaidData.length > 0 ? sortedUnpaidData : groupDeliveriesByDriver('Receive');
+    const paidGroupedData = sortedPaidData.length > 0 ? sortedPaidData : groupDeliveriesByDriver('Received');
     const allGroupedData = groupDeliveriesByDriver();
 
     const totalAllCharges = calculateTotalCharges(filteredDeliveries);
@@ -590,15 +661,100 @@ export default function DriverInvoice() {
             <TableContainer component={Paper} sx={{ mb: 4 }}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: '#FF6B6B' }}>
-                            <TableCell sx={{ color: 'white' }}></TableCell>
-                            <TableCell sx={{ color: 'white' }}>Driver Name</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Vehicle Number</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Phone</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Deliveries</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Amount</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Payment</TableCell>
+                        <TableRow sx={{ backgroundColor: '#FF6B6B', height: 60 }}>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}></TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#FF6B6B',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#fd7878ff',
+                                    }
+                                }}
+                                onClick={() => handleSort('driverName', unpaidGroupedData, setSortedUnpaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Driver Name
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('driverName')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                 sx={{
+                                    backgroundColor: '#FF6B6B',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#fd7878ff',
+                                    }
+                                }}
+                                onClick={() => handleSort('vehicleNumber', unpaidGroupedData, setSortedUnpaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Vehicle Number
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('vehicleNumber')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                 sx={{
+                                    backgroundColor: '#FF6B6B',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#fd7878ff',
+                                    }
+                                }}
+                                onClick={() => handleSort('phone', unpaidGroupedData, setSortedUnpaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Phone
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('phone')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                 sx={{
+                                    backgroundColor: '#FF6B6B',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#fd7878ff',
+                                    }
+                                }}
+                                onClick={() => handleSort('deliveries', unpaidGroupedData, setSortedUnpaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Deliveries
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('deliveries')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                 sx={{
+                                    backgroundColor: '#FF6B6B',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#fd7878ff',
+                                    }
+                                }}
+                                onClick={() => handleSort('amount', unpaidGroupedData, setSortedUnpaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Amount
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('amount')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Actions</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Payment</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -631,15 +787,111 @@ export default function DriverInvoice() {
             <TableContainer component={Paper} sx={{ mb: 4 }}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: '#00A67E' }}>
-                            <TableCell sx={{ color: 'white' }}></TableCell>
-                            <TableCell sx={{ color: 'white' }}>Driver Name</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Vehicle Number</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Phone</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Deliveries</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Amount</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Status</TableCell>
+                        <TableRow sx={{ backgroundColor: '#00B074', height: 60 }}>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}></TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('driverName', paidGroupedData, setSortedPaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Driver Name
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('driverName')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('vehicleNumber', paidGroupedData, setSortedPaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Vehicle Number
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('vehicleNumber')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('phone', paidGroupedData, setSortedPaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Phone
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('phone')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('deliveries', paidGroupedData, setSortedPaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Deliveries
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('deliveries')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('amount', paidGroupedData, setSortedPaidData)}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Amount
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('amount')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Actions</TableCell>
+                            <TableCell sx={{
+                                backgroundColor: '#00B074',
+                                cursor: 'pointer',
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                py: 2,
+                                '&:hover': {
+                                    backgroundColor: '#009e64',
+                                }
+                            }}>
+                                Status
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>

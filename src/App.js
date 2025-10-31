@@ -72,7 +72,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", sans-serif',
   },
   components: {
     MuiButton: {

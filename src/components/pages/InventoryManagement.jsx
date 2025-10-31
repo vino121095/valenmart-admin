@@ -20,6 +20,8 @@ import {
 import { styled } from '@mui/material/styles';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 
 // Styled components
@@ -95,6 +97,7 @@ const GrayCircle = styled(CircleBase)(() => ({
 export default function InventoryDashboard() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [orderDirection, setOrderDirection] = useState({});
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -120,6 +123,75 @@ export default function InventoryDashboard() {
     threshold: 'Restock soon'
   }));
   const lowStockProductsCount = lowStockProductsList.length;
+
+  const handleSort = (column) => {
+    const isAsc = orderDirection[column] === 'asc';
+    setOrderDirection({
+      ...orderDirection,
+      [column]: isAsc ? 'desc' : 'asc',
+    });
+
+    const sortedProducts = [...products].sort((a, b) => {
+      let aValue, bValue;
+
+      switch (column) {
+        case 'name':
+          aValue = a.product_name;
+          bValue = b.product_name;
+          break;
+        case 'category':
+          aValue = a.category;
+          bValue = b.category;
+          break;
+        case 'unit':
+          aValue = parseInt(a.unit);
+          bValue = parseInt(b.unit);
+          break;
+        case 'price':
+          const priceA = typeof a.price === 'string' ? a.price : String(a.price || '0');
+          const priceB = typeof b.price === 'string' ? b.price : String(b.price || '0');
+          aValue = parseFloat(priceA.replace(/[^0-9.]/g, ''));
+          bValue = parseFloat(priceB.replace(/[^0-9.]/g, ''));
+          break;
+        case 'status':
+          aValue = a.is_active;
+          bValue = b.is_active;
+          break;
+        default:
+          aValue = a[column];
+          bValue = b[column];
+      }
+
+      if (isNaN(aValue) || isNaN(bValue)) {
+        if (isAsc) {
+          return String(aValue).localeCompare(String(bValue));
+        } else {
+          return String(bValue).localeCompare(String(aValue));
+        }
+      }
+
+      return isAsc ? aValue - bValue : bValue - aValue;
+    });
+
+    setProducts(sortedProducts);
+  };
+
+  const getSortIcon = (column) => {
+    if (!orderDirection[column]) return null;
+    return orderDirection[column] === 'asc' ?
+      <ArrowUpwardIcon fontSize="small" /> :
+      <ArrowDownwardIcon fontSize="small" />;
+  };
+
+  const tableHeaders = [
+    { id: 'image', label: 'Image', sortable: false },
+    { id: 'name', label: 'Product Name', sortable: true },
+    { id: 'category', label: 'Category', sortable: true },
+    { id: 'unit', label: 'Unit', sortable: true },
+    { id: 'price', label: 'Price (₹)', sortable: true },
+    { id: 'status', label: 'Status', sortable: true },
+    { id: 'actions', label: 'Actions', sortable: false },
+  ];
 
   return (
     <Box>
@@ -175,7 +247,7 @@ export default function InventoryDashboard() {
       </Grid>
 
       {/* Product Table */}
-      <Paper sx={{ borderRadius: '6px', overflow: 'hidden' }}>
+      <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}>
         <Box sx={{ p: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Product Inventory</Typography>
         </Box>
@@ -184,16 +256,31 @@ export default function InventoryDashboard() {
             <CircularProgress size={24} />
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: 420 }}>
+          <TableContainer sx={{ minWidth: 700 }} aria-label="customer table">
             <Table size="small" stickyHeader>
               <TableHead>
-                <TableRow>
-                  {['Image', 'Product Name', 'Category', 'Unit', 'Price (₹)', 'Status', 'Actions'].map(title => (
+                <TableRow sx={{ height: 60 }}>
+                  {tableHeaders.map(header => (
                     <TableCell
-                      key={title}
-                      sx={{ fontWeight: 'bold', fontSize: '0.75rem', bgcolor: '#00b574', color: '#fff' }}
+                      key={header.id}
+                      sx={{
+                        backgroundColor: '#00B074',
+                        cursor: 'pointer',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        py: 2,
+                        '&:hover': {
+                          backgroundColor: '#009e64',
+                        }
+                      }}
+                      onClick={() => header.sortable && handleSort(header.id)}
                     >
-                      {title}
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {header.label}
+                        {header.sortable && (
+                          <Box sx={{ ml: 0.5 }}>{getSortIcon(header.id)}</Box>
+                        )}
+                      </Box>
                     </TableCell>
                   ))}
                 </TableRow>
@@ -206,27 +293,29 @@ export default function InventoryDashboard() {
                       key={product.pid}
                       sx={{
                         backgroundColor: isLowStock ? '#fd6e6e' : 'inherit',
+                        '&:nth-of-type(odd)': { backgroundColor: isLowStock ? '#fd6e6e' : '#f9f9f9' },
+                        height: 80
                       }}
                     >
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         <img
                           src={`${baseurl}/${product.product_image.replace(/\\/g, '/')}`}
                           alt={product.product_name}
-                          style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }}
+                          style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
                         />
                       </TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem' }}>{product.product_name}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem' }}>{product.category}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem' }}>{product.unit}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem' }}>{product.price}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem'}}>{product.product_name}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem'}}>{product.category}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem'}}>{product.unit}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem'}}>{product.price}</TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         {product.is_active === 'Available' ? (
                           <GreenChip label="Available" size="small" />
                         ) : (
                           <GrayChip label="Unavailable" size="small" />
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         <ActionButton
                           size="small"
                           onClick={() => window.location.href = `/view-product/${product.pid}`}

@@ -33,6 +33,8 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 
 const statusColors = {
@@ -62,6 +64,7 @@ export default function DeliveryManagement() {
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editFormData, setEditFormData] = useState({});
+  const [orderDirection, setOrderDirection] = useState({});
 
   useEffect(() => {
     fetch(baseurl + '/api/driver-details/all')
@@ -247,6 +250,63 @@ export default function DeliveryManagement() {
   //   });
 };
 
+  const handleSort = (column) => {
+    const isAsc = orderDirection[column] === 'asc';
+    setOrderDirection({
+      ...orderDirection,
+      [column]: isAsc ? 'desc' : 'asc',
+    });
+
+    const sortedDrivers = [...drivers].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch(column) {
+        case 'name':
+          aValue = `${a.first_name} ${a.last_name}`;
+          bValue = `${b.first_name} ${b.last_name}`;
+          break;
+        case 'contact':
+          aValue = a.phone;
+          bValue = b.phone;
+          break;
+        case 'vehicle':
+          aValue = a.vehicle_type;
+          bValue = b.vehicle_type;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'license':
+          aValue = a.license_number;
+          bValue = b.license_number;
+          break;
+        default:
+          aValue = a[column];
+          bValue = b[column];
+      }
+      
+      if (isNaN(aValue) || isNaN(bValue)) {
+        if (isAsc) {
+          return String(aValue).localeCompare(String(bValue));
+        } else {
+          return String(bValue).localeCompare(String(aValue));
+        }
+      }
+      
+      return isAsc ? aValue - bValue : bValue - aValue;
+    });
+    
+    setDrivers(sortedDrivers);
+  };
+
+  const getSortIcon = (column) => {
+    if (!orderDirection[column]) return null;
+    return orderDirection[column] === 'asc' ?
+      <ArrowUpwardIcon fontSize="small" /> :
+      <ArrowDownwardIcon fontSize="small" />;
+  };
+
   return (
     <Box>
       <Breadcrumbs
@@ -320,12 +380,28 @@ export default function DeliveryManagement() {
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: '#00A67E' }}>
-                <TableCell sx={{ color: 'white' }}>Driver Name</TableCell>
-                <TableCell sx={{ color: 'white' }}>Status</TableCell>
-                <TableCell sx={{ color: 'white' }}>Current Task</TableCell>
-                <TableCell sx={{ color: 'white' }}>Completed Today</TableCell>
-                <TableCell sx={{ color: 'white' }}>Action</TableCell>
+              <TableRow sx={{ backgroundColor: '#00B074', height: 60 }}>
+                <TableCell 
+                  sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                  onClick={() => handleSort('name')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Driver Name
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('name')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell 
+                  sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                  onClick={() => handleSort('status')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Status
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Current Task</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Completed Today</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -338,9 +414,15 @@ export default function DeliveryManagement() {
                 ).length;
 
                 return (
-                  <TableRow key={index}>
-                    <TableCell>{`${driver.first_name} ${driver.last_name}`}</TableCell>
-                    <TableCell>
+                  <TableRow 
+                    key={index}
+                    sx={{
+                      '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                      height: 80
+                    }}
+                  >
+                    <TableCell sx={{ py: 2 }}>{`${driver.first_name} ${driver.last_name}`}</TableCell>
+                    <TableCell sx={{ py: 2 }}>
                       <Chip
                         label={driver.status}
                         color={statusColors[driver.status] || 'default'}
@@ -348,16 +430,16 @@ export default function DeliveryManagement() {
                         sx={{ textTransform: 'capitalize' }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ py: 2 }}>
                       {driverDeliveries
                         .filter(delivery => delivery.status === 'In Progress')
                         .map(delivery => delivery.deliveryNo || 'N/A')
                         .join(', ') || 'None'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ py: 2 }}>
                       {completedTodayCount || '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ py: 2 }}>
                       <Button variant="outlined" size="small" onClick={() => navigate(`/driver/${driver.did}`)}>View</Button>
                     </TableCell>
                   </TableRow>
@@ -391,23 +473,78 @@ export default function DeliveryManagement() {
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: '#00A67E' }}>
-                <TableCell sx={{ color: 'white' }}>Driver</TableCell>
-                <TableCell sx={{ color: 'white' }}>Contact</TableCell>
-                <TableCell sx={{ color: 'white' }}>Vehicle</TableCell>
-                <TableCell sx={{ color: 'white' }}>Status</TableCell>
-                <TableCell sx={{ color: 'white' }}>License</TableCell>
-                <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+              <TableRow sx={{ backgroundColor: '#00B074', height: 60 }}>
+                <TableCell 
+                  sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                  onClick={() => handleSort('name')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Driver
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('name')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell 
+                  sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                  onClick={() => handleSort('contact')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Contact
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('contact')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell 
+                  sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                  onClick={() => handleSort('vehicle')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Vehicle
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('vehicle')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell 
+                  sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                  onClick={() => handleSort('status')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Status
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell 
+                  sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
+                  onClick={() => handleSort('license')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    License
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('license')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {drivers.map((driver, index) => (
-                <TableRow key={index}>
-                  <TableCell>
+                <TableRow 
+                  key={index}
+                  sx={{
+                    '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                    height: 80
+                  }}
+                >
+                  <TableCell sx={{ py: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Avatar
                         src={`http://localhost:8000/${driver.driver_image}`}
-                        sx={{ width: 40, height: 40, mr: 2 }}
+                        sx={{ width: 50, height: 50, mr: 2 }}
                       />
                       <Box>
                         <Typography variant="body1">{`${driver.first_name} ${driver.last_name}`}</Typography>
@@ -415,28 +552,28 @@ export default function DeliveryManagement() {
                       </Box>
                     </Box>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <Typography variant="body2">{driver.phone}</Typography>
                     <Typography variant="body2" color="text.secondary">Emergency: {driver.emergency_phone}</Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <Typography variant="body2">{driver.vehicle_type}</Typography>
                     <Typography variant="body2" color="text.secondary">{driver.vehicle_number}</Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <Chip
                       label={driver.status}
                       color={statusColors[driver.status] || 'default'}
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <Typography variant="body2">{driver.license_number}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Exp: {new Date(driver.license_expiry_date).toLocaleDateString()}
                     </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <IconButton onClick={() => handleViewDriver(driver)} color="primary">
                       <VisibilityIcon />
                     </IconButton>
@@ -509,28 +646,34 @@ export default function DeliveryManagement() {
                                 </Typography>
                               </Typography>
                             </TableRow>
-                            <TableRow sx={{ backgroundColor: '#00A67E' }}>
-                              <TableCell sx={{ color: 'white' }}>Delivery ID</TableCell>
-                              <TableCell sx={{ color: 'white' }}>Time Slot</TableCell>
-                              <TableCell sx={{ color: 'white' }}>Type</TableCell>
-                              <TableCell sx={{ color: 'white' }}>Charges (₹)</TableCell>
-                              <TableCell sx={{ color: 'white' }}>Status</TableCell>
+                            <TableRow sx={{ backgroundColor: '#00B074', height: 60 }}>
+                              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Delivery ID</TableCell>
+                              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Time Slot</TableCell>
+                              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Type</TableCell>
+                              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Charges (₹)</TableCell>
+                              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Status</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
                             {driverDeliveries.map((delivery, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{delivery.deliveryNo}</TableCell>
-                                <TableCell>{delivery.timeSlot}</TableCell>
-                                <TableCell>
+                              <TableRow 
+                                key={index}
+                                sx={{
+                                  '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                                  height: 70
+                                }}
+                              >
+                                <TableCell sx={{ py: 2 }}>{delivery.deliveryNo}</TableCell>
+                                <TableCell sx={{ py: 2 }}>{delivery.timeSlot}</TableCell>
+                                <TableCell sx={{ py: 2 }}>
                                   <Chip
                                     label={delivery.type}
                                     size="small"
                                     color={delivery.type === 'Customer' ? 'primary' : 'secondary'}
                                   />
                                 </TableCell>
-                                <TableCell>₹{delivery.charges}</TableCell>
-                                <TableCell>
+                                <TableCell sx={{ py: 2 }}>₹{delivery.charges}</TableCell>
+                                <TableCell sx={{ py: 2 }}>
                                   <Chip
                                     label={delivery.status}
                                     size="small"

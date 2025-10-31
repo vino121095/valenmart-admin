@@ -47,7 +47,7 @@ import baseurl from "../ApiService/ApiService";
 import { useNavigate } from "react-router-dom";
 import AdminProcurement from "./AdminProcurement";
 
-const ProcurementOrderManagement = () => {
+const ProcurementOrderManagement = ({ reportMode = false }) => {
   const navigate = useNavigate();
   const [orderData, setOrderData] = useState([]);
   const [orderCounts, setOrderCounts] = useState({
@@ -81,6 +81,13 @@ const ProcurementOrderManagement = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // Force admin view in report mode
+  useEffect(() => {
+    if (reportMode) {
+      setIsAdminView(true);
+    }
+  }, [reportMode]);
+
   useEffect(() => {
     fetch(`${baseurl}/api/procurement/all`)
       .then((response) => response.json())
@@ -94,7 +101,7 @@ const ProcurementOrderManagement = () => {
           }));
           setOrderData(parsedData);
           setFilteredOrders(parsedData);
-          
+
           // Calculate counts
           const counts = {
             all: data.data.length,
@@ -104,7 +111,7 @@ const ProcurementOrderManagement = () => {
             Received: 0,
             Rejected: 0,
           };
-          
+
           data.data.forEach((order) => {
             if (order.status in counts) {
               counts[order.status]++;
@@ -135,7 +142,7 @@ const ProcurementOrderManagement = () => {
     };
 
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {!imgError ? (
           <Avatar
             src={imageUrl}
@@ -143,8 +150,8 @@ const ProcurementOrderManagement = () => {
             variant="rounded"
             onError={handleImageError}
             sx={{
-              width: 40,
-              height: 40,
+              width: 50,
+              height: 50,
               border: '1px solid #e0e0e0',
             }}
           />
@@ -152,8 +159,8 @@ const ProcurementOrderManagement = () => {
           <Avatar
             variant="rounded"
             sx={{
-              width: 40,
-              height: 40,
+              width: 50,
+              height: 50,
               bgcolor: '#f0f0f0',
               color: '#9e9e9e',
               border: '1px solid #e0e0e0',
@@ -162,9 +169,6 @@ const ProcurementOrderManagement = () => {
             <BrokenImage fontSize="small" />
           </Avatar>
         )}
-        <Typography variant="body2" noWrap sx={{ maxWidth: 120 }}>
-          {itemName}
-        </Typography>
       </Box>
     );
   };
@@ -443,11 +447,14 @@ const ProcurementOrderManagement = () => {
             </Button>
             <Button
               size="small"
-              color="warning"
-              variant="contained"
-              startIcon={<ReceiptLong fontSize="small" />}
+              color="inherit"
+              variant="outlined"
+              sx={{
+                    fontSize: '0.75rem',
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap'
+                  }}
               onClick={() => handleView(orderId)}
-              sx={{ fontSize: "0.75rem", textTransform: "none" }}
             >
               View
             </Button>
@@ -528,16 +535,16 @@ const ProcurementOrderManagement = () => {
   };
 
   const headerCells = [
-    { id: "id", label: "Order ID" },
+    { id: "id", label: "Order ID", sortable: true },
     { id: "type", label: "Type", sortable: true },
     { id: "vendor/farmer", label: "Vendor/Farmar", sortable: true },
-    { id: "product", label: "Product Image", sortable: true },
+    { id: "product", label: "Product Image", sortable: false },
     { id: "items", label: "Items", sortable: true },
     { id: "price", label: "Price", sortable: true },
     { id: "requestdata", label: "Request Date", sortable: true },
     { id: "pickupdriver", label: "Pickup Driver", sortable: true },
     { id: "status", label: "Status", sortable: true },
-    { id: "action", label: "Action" },
+    { id: "action", label: "Action", sortable: false },
   ];
 
   const emptyRows =
@@ -606,13 +613,13 @@ const ProcurementOrderManagement = () => {
     } else if (Array.isArray(row.items)) {
       itemsArr = [...row.items];
     }
-    
+
     itemsArr.forEach(item => {
       if (multiEditAmounts[item.product_id] !== undefined) {
         item.unit_price = multiEditAmounts[item.product_id];
       }
     });
-    
+
     try {
       const response = await fetch(`${baseurl}/api/procurement/update/${multiEditOrder.procurement_id}`, {
         method: 'PUT',
@@ -666,32 +673,37 @@ const ProcurementOrderManagement = () => {
 
     return (
       <Paper
-        sx={{
-          width: "100%",
-          overflow: "hidden",
-          boxShadow: "none",
-          border: "1px solid #e0e0e0",
-        }}
+       sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}
       >
         <TableContainer>
-          <Table sx={{ minWidth: 700 }} aria-label="order table">
+          <Table sx={{ minWidth: 700 }} aria-label="customer table">
             <TableHead>
               <TableRow>
                 {headerCells.map((cell) => (
                   <TableCell
                     key={cell.id}
-                    align={cell.id === "action" ? "center" : "left"}
+                    align="left"
                     sx={{
-                      backgroundColor: "#00B074",
-                      cursor: cell.sortable ? "pointer" : "default",
-                      color: "#fff",
+                      backgroundColor: '#00B074',
+                      cursor: cell.sortable ? 'pointer' : 'default',
+                      color: '#fff',
+                      fontWeight: "bold",
+                      fontSize: '14px',
+                      padding: '16px',
+                      borderBottom: 'none',
+                      whiteSpace: 'nowrap',
+                      '&:hover': cell.sortable ? {
+                        backgroundColor: '#009e64',
+                      } : {},
                     }}
                     onClick={() => cell.sortable && handleSort(cell.id)}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       {cell.label}
                       {cell.sortable && (
-                        <Box sx={{ ml: 0.5 }}>{getSortIcon(cell.id)}</Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5 }}>
+                          {getSortIcon(cell.id)}
+                        </Box>
                       )}
                     </Box>
                   </TableCell>
@@ -712,14 +724,15 @@ const ProcurementOrderManagement = () => {
                       key={row.procurement_id}
                       sx={{
                         "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" },
+                        height: 80,
                       }}
                     >
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{row.type}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>{index + 1}</TableCell>
+                      <TableCell sx={{ py: 2 }}>{row.type}</TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         {row.vendor_name || row.vendor?.contact_person || 'N/A'}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         <ProductImage
                           imageUrl={
                             row.procurement_product_image
@@ -728,7 +741,7 @@ const ProcurementOrderManagement = () => {
                           }
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         {items.map((item, idx) => {
                           const product = products.find(p => p.pid === item.product_id || p.id === item.product_id);
                           return (
@@ -739,7 +752,7 @@ const ProcurementOrderManagement = () => {
                           );
                         })}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         {row.status === "Requested" ? (
                           items.length === 1 ? (
                             editingId === row.procurement_id ? (
@@ -787,16 +800,16 @@ const ProcurementOrderManagement = () => {
                           )
                         )}
                       </TableCell>
-                      <TableCell>{row.order_date}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>{row.order_date}</TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         {row.driver
                           ? `${row.driver.first_name || ""} ${row.driver.last_name || ""}`.trim()
                           : "N/A"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         <StatusChip status={row.status} />
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell align="left" sx={{ py: 2 }}>
                         <ActionButtons
                           status={row.status}
                           orderId={row.procurement_id}
@@ -828,92 +841,94 @@ const ProcurementOrderManagement = () => {
 
   return (
     <Box>
-      <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
-        aria-label="breadcrumb"
-        sx={{ mb: 2 }}
-      >
-        <Link
-          underline="hover"
-          color="inherit"
-          href="/"
-          sx={{
-            color: theme.palette.primary.main,
-            fontWeight: 500,
-            fontSize: "0.875rem",
-          }}
+      {!reportMode && (
+        <Breadcrumbs
+          separator={<NavigateNextIcon fontSize="small" />}
+          aria-label="breadcrumb"
+          sx={{ mb: 2 }}
         >
-          Dashboard
-        </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            sx={{
+              color: theme.palette.primary.main,
+              fontWeight: 500,
+              fontSize: "0.875rem",
+            }}
+          >
+            Dashboard
+          </Link>
+          <Typography
+            color="text.primary"
+            sx={{
+              fontWeight: 500,
+              fontSize: "0.875rem",
+            }}
+          >
+            Procurement Order Management
+          </Typography>
+        </Breadcrumbs>
+      )}
+
+      {!reportMode && (
         <Typography
-          color="text.primary"
+          variant="h5"
+          component="h1"
           sx={{
-            fontWeight: 500,
-            fontSize: "0.875rem",
+            fontWeight: "bold",
+            mb: 3,
           }}
         >
           Procurement Order Management
         </Typography>
-      </Breadcrumbs>
-
-      <Typography
-        variant="h5"
-        component="h1"
-        sx={{
-          fontWeight: "bold",
-          mb: 3,
-        }}
-      >
-        Procurement Order Management
-      </Typography>
+      )}
 
       <Box sx={{ mt: 2, mb: 2 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Card
-              variant="outlined"
-              sx={{
-                borderColor: "success.main",
-                bgcolor: "#00B0740D",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                p: 2,
-                borderRadius: 2,
-                boxShadow: "none",
-              }}
-            >
-              <Box sx={{ flex: 1, minWidth: 200 }}>
-                <Typography
-                  variant="subtitle1"
-                  sx={{ color: "success.main", fontWeight: 600 }}
-                >
-                  Create New Procurement Order
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Add vegetables to order, assign vendors and schedule pickup
-                </Typography>
-              </Box>
-
-              <Button
-                variant="contained"
-                onClick={() => navigate("/create-procurement")}
+          {!reportMode && (
+            <Grid item xs={12} md={6}>
+              <Card
+                variant="outlined"
                 sx={{
+                  borderColor: "success.main",
+                  bgcolor: "#00B0740D",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  p: 2,
                   borderRadius: 2,
-                  px: 3,
-                  // backgroundColor: "success.dark",
-                  // "&:hover": {
-                  //   backgroundColor: "success.main",
-                  // },
-                  mt: { xs: 2, md: 2 },
-                  marginLeft: "20px",
+                  boxShadow: "none",
                 }}
               >
-                Create
-              </Button>
-            </Card>
-          </Grid>
+                <Box sx={{ flex: 1, minWidth: 200 }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ color: "success.main", fontWeight: 600 }}
+                  >
+                    Create New Procurement Order
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Add vegetables to order, assign vendors and schedule pickup
+                  </Typography>
+                </Box>
+
+                <Button
+                  variant="contained"
+                  onClick={() => navigate("/create-procurement")}
+                  sx={{
+                    borderRadius: 2,
+                    px: 3,
+                    mt: { xs: 2, md: 2 },
+                    marginLeft: "20px",
+                  }}
+                >
+                  Create
+                </Button>
+              </Card>
+            </Grid>
+          )}
           <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
             <FormControlLabel
               control={
@@ -933,9 +948,11 @@ const ProcurementOrderManagement = () => {
           </Grid>
         </Grid>
         <Box sx={{ width: "100%", mb: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: "medium", mt: 2 }}>
-            By Order Status
-          </Typography>
+          {!reportMode && (
+            <Typography variant="subtitle1" sx={{ fontWeight: "medium", mt: 2 }}>
+              By Order Status
+            </Typography>
+          )}
           <Tabs
             value={selectedTab}
             onChange={handleTabChange}

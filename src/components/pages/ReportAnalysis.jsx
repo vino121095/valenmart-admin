@@ -280,15 +280,15 @@ const ReportAnalysis = () => {
       {/* Content based on active tab */}
       <Box sx={{ mt: 3 }}>
         {activeTab === 0 ? (
-          <CustomerOrder />
+          <CustomerOrder reportMode={true} />
         ) : activeTab === 1 ? (
-          <ProcurementOrderManagement />
+          <ProcurementOrderManagement reportMode={true} />
         ) : activeTab === 2 ? (
-          <ProductManagement />
+          <ProductManagement reportMode={true} />
         ) : activeTab === 3 ? (
-          <Vendors />
+          <Vendors reportMode={true} />
         ) : (
-          <Customer />
+          <Customer reportMode={true} />
         )}
       </Box>
 

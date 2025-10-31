@@ -35,7 +35,7 @@
   import baseurl from '../ApiService/ApiService';
   import { useNavigate } from 'react-router-dom';
 
-  const CustomerOrder = () => {
+  const CustomerOrder = ({ reportMode = false }) => {
     const navigate = useNavigate();
     const [orderCounts, setOrderCounts] = useState({
       all: 0,
@@ -578,7 +578,11 @@
       });
 
       const sortedOrders = [...filteredOrders].sort((a, b) => {
-        if (column === 'customer') {
+        if (column === 'id') {
+          const aValue = a.order_id || '';
+          const bValue = b.order_id || '';
+          return isAsc ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        } else if (column === 'customer') {
           const aValue = a.CustomerProfile?.contact_person_name || '';
           const bValue = b.CustomerProfile?.contact_person_name || '';
           return isAsc ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
@@ -603,8 +607,8 @@
             ? a.status.localeCompare(b.status)
             : b.status.localeCompare(a.status);
         } else if (column === 'driver') {
-          const aValue = a.Driversdetail?.driver_name || '';
-          const bValue = b.Driversdetail?.driver_name || '';
+          const aValue = a.DriversDetail ? `${a.DriversDetail.first_name} ${a.DriversDetail.last_name}` : '';
+          const bValue = b.DriversDetail ? `${b.DriversDetail.first_name} ${b.DriversDetail.last_name}` : '';
           return isAsc ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
         }
         return 0;
@@ -652,7 +656,7 @@
     };
 
     const headerCells = [
-      { id: 'id', label: 'Order ID' },
+      { id: 'id', label: 'Order ID', sortable: true },
       { id: 'customer', label: 'Customer', sortable: true },
       { id: 'orderedDate', label: 'Ordered Date', sortable: true },
       { id: 'deliveryDate', label: 'Delivery Date', sortable: true },
@@ -660,7 +664,7 @@
       { id: 'payment', label: 'Payment', sortable: true },
       { id: 'status', label: 'Status', sortable: true },
       { id: 'driver', label: 'Driver', sortable: true },
-      { id: 'action', label: 'Action' },
+      { id: 'action', label: 'Action', sortable: false },
     ];
 
     const emptyRows = tablePage > 0 ? Math.max(0, (1 + tablePage) * rowsPerPage - filteredOrders.length) : 0;
@@ -701,49 +705,55 @@
 
     return (
       <Box>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-          sx={{ mb: 2 }}
-        >
-          <Link
-            underline="hover"
-            color="inherit"
-            href="/"
-            sx={{
-              color: theme.palette.primary.main,
-              fontWeight: 500,
-              fontSize: '0.875rem'
-            }}
+        {!reportMode && (
+          <Breadcrumbs
+            separator={<NavigateNextIcon fontSize="small" />}
+            aria-label="breadcrumb"
+            sx={{ mb: 2 }}
           >
-            Dashboard
-          </Link>
+            <Link
+              underline="hover"
+              color="inherit"
+              href="/"
+              sx={{
+                color: theme.palette.primary.main,
+                fontWeight: 500,
+                fontSize: '0.875rem'
+              }}
+            >
+              Dashboard
+            </Link>
+            <Typography
+              color="text.primary"
+              sx={{
+                fontWeight: 500,
+                fontSize: '0.875rem'
+              }}
+            >
+              Customer Order Management
+            </Typography>
+          </Breadcrumbs>
+        )}
+
+        {!reportMode && (
           <Typography
-            color="text.primary"
+            variant="h5"
+            component="h1"
             sx={{
-              fontWeight: 500,
-              fontSize: '0.875rem'
+              fontWeight: 'bold',
+              mb: 3
             }}
           >
             Customer Order Management
           </Typography>
-        </Breadcrumbs>
-
-        <Typography
-          variant="h5"
-          component="h1"
-          sx={{
-            fontWeight: 'bold',
-            mb: 3
-          }}
-        >
-          Customer Order Management
-        </Typography>
+        )}
 
         <Box sx={{ mt: 2, mb: 2 }}>
+          {!reportMode && (
           <Typography variant="subtitle1" sx={{ fontWeight: 'medium', mb: 1 }}>
             By Order Status
           </Typography>
+          )}
           <Box sx={{ width: '100%', mb: 2 }}>
             <Tabs
               value={selectedTab}
@@ -777,7 +787,7 @@
           </Box>
         </Box>
 
-        <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}>
+        <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.08)', borderRadius: '8px' }}>
           <TableContainer>
             <Table sx={{ minWidth: 700 }} aria-label="order table">
               <TableHead>
@@ -785,18 +795,26 @@
                   {headerCells.map((cell) => (
                     <TableCell
                       key={cell.id}
-                      align={cell.id === 'action' ? 'center' : 'left'}
+                      align="left"
                       sx={{
                         backgroundColor: '#00B074',
                         cursor: cell.sortable ? 'pointer' : 'default',
                         color: '#fff',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        padding: '16px',
+                        borderBottom: 'none',
+                        whiteSpace: 'nowrap',
+                        '&:hover': cell.sortable ? {
+                          backgroundColor: '#009e64',
+                        } : {},
                       }}
                       onClick={() => cell.sortable && handleSort(cell.id)}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         {cell.label}
                         {cell.sortable && (
-                          <Box sx={{ ml: 0.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5 }}>
                             {getSortIcon(cell.id)}
                           </Box>
                         )}
@@ -809,42 +827,60 @@
                 {filteredOrders.length > 0 ? (
                   filteredOrders
                     .slice(tablePage * rowsPerPage, tablePage * rowsPerPage + rowsPerPage)
-                    .map((row) => (
+                    .map((row, index) => (
                       <TableRow
                         hover
                         key={row.id || row.oid}
-                        sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' } }}
+                        sx={{ 
+                          '&:nth-of-type(even)': { backgroundColor: '#ffffff' },
+                          '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
+                          '&:hover': { backgroundColor: '#f5f5f5 !important' },
+                          transition: 'background-color 0.2s ease',
+                          height: '72px'
+                        }}
                       >
-                        <TableCell>{row.order_id}</TableCell>
-                        <TableCell>{row.CustomerProfile?.contact_person_name}</TableCell>
-                        <TableCell>{row.order_date}</TableCell>
-                        <TableCell>{row.delivery_date}</TableCell>
-                        <TableCell>₹{calculateOrderTotal(row.oid)}</TableCell>
-                        <TableCell>
+                        <TableCell sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, color: '#333', borderBottom: '1px solid #e0e0e0' }}>
+                          {row.order_id}
+                        </TableCell>
+                        <TableCell sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, color: '#333', borderBottom: '1px solid #e0e0e0' }}>
+                          {row.CustomerProfile?.contact_person_name}
+                        </TableCell>
+                        <TableCell sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, color: '#333', borderBottom: '1px solid #e0e0e0' }}>
+                          {row.order_date}
+                        </TableCell>
+                        <TableCell sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, color: '#333', borderBottom: '1px solid #e0e0e0' }}>
+                          {row.delivery_date}
+                        </TableCell>
+                        <TableCell sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, color: '#333', borderBottom: '1px solid #e0e0e0' }}>
+                          ₹{calculateOrderTotal(row.oid)}
+                        </TableCell>
+                        <TableCell sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, borderBottom: '1px solid #e0e0e0' }}>
                           <Box sx={{ color: row.payment_method === 'cash on delivery' ? '#FF9800' : '#4CAF50' }}>
                             {row.payment_method}
                           </Box>
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, color: '#333', borderBottom: '1px solid #e0e0e0' }}>
                           <StatusChip status={row.status} />
                         </TableCell>
-                        <TableCell>{row.DriversDetail ? `${row.DriversDetail.first_name} ${row.DriversDetail.last_name}` : 'Not Assigned'}</TableCell>
-                        <TableCell align="center">
+                        <TableCell sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, color: '#333', borderBottom: '1px solid #e0e0e0' }}>
+                          {row.DriversDetail ? `${row.DriversDetail.first_name} ${row.DriversDetail.last_name}` : 'Not Assigned'}
+                        </TableCell>
+                        <TableCell align="left" sx={{ padding: '20px 16px', fontSize: '14px', fontWeight: 400, borderBottom: '1px solid #e0e0e0' }}>
                           <ActionButton status={row.status} order={row} />
                         </TableCell>
                       </TableRow>
                     ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
-                      <Typography variant="body1" sx={{ py: 2 }}>
+                    <TableCell colSpan={9} align="left" sx={{ padding: '32px 16px', fontSize: '14px', color: '#666' }}>
+                      <Typography variant="body1">
                         No orders found
                       </Typography>
                     </TableCell>
                   </TableRow>
                 )}
                 {emptyRows > 0 && (
-                  <TableRow style={{ height: 53 * emptyRows }}>
+                  <TableRow style={{ height: 72 * emptyRows }}>
                     <TableCell colSpan={9} />
                   </TableRow>
                 )}
@@ -859,6 +895,14 @@
             page={tablePage}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
+            sx={{
+              borderTop: '1px solid #e0e0e0',
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                fontSize: '14px',
+                fontWeight: 400,
+                color: '#666'
+              }
+            }}
           />
         </Paper>
 

@@ -19,6 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import baseurl from '../ApiService/ApiService';
+import velaanLogo from '../assets/velaanLogo.png';
 
 const borderStyle = '1px solid #000';
 const noBorderStyle = 'none';
@@ -262,7 +263,7 @@ export default function VendorInvoiceView() {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <img src="/velaan-logo.png" alt="Velaan Mart" style={{ maxWidth: '80px', height: 'auto' }} />
+            <img src={velaanLogo} alt="Velaan Mart" style={{ maxWidth: '100px', height: 'auto' }} />
           </Box>
           <Box sx={{
             flex: 1,

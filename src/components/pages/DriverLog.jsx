@@ -7,6 +7,8 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions, Breadcrumbs, Link
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
@@ -25,6 +27,7 @@ export default function DriverLog() {
 
   const [selectedLog, setSelectedLog] = useState(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [orderDirection, setOrderDirection] = useState({});
 
   useEffect(() => {
     const fetchDriverLogs = async () => {
@@ -112,6 +115,74 @@ export default function DriverLog() {
     return matchesStatus && matchesName && matchesDate;
   });
 
+  const handleSort = (column) => {
+    const isAsc = orderDirection[column] === 'asc';
+    setOrderDirection({
+      ...orderDirection,
+      [column]: isAsc ? 'desc' : 'asc',
+    });
+
+    const sortedData = [...driverData].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch(column) {
+        case 'driverName':
+          aValue = a.driver ? `${a.driver.first_name} ${a.driver.last_name}` : 'Unknown';
+          bValue = b.driver ? `${b.driver.first_name} ${b.driver.last_name}` : 'Unknown';
+          break;
+        case 'date':
+          aValue = new Date(a.log_date);
+          bValue = new Date(b.log_date);
+          break;
+        case 'loginTime':
+          aValue = a.login_time ? new Date(a.login_time) : new Date(0);
+          bValue = b.login_time ? new Date(b.login_time) : new Date(0);
+          break;
+        case 'logoutTime':
+          aValue = a.logout_time ? new Date(a.logout_time) : new Date(0);
+          bValue = b.logout_time ? new Date(b.logout_time) : new Date(0);
+          break;
+        case 'duration':
+          aValue = a.login_time && a.logout_time ? new Date(a.logout_time) - new Date(a.login_time) : 0;
+          bValue = b.login_time && b.logout_time ? new Date(b.logout_time) - new Date(b.login_time) : 0;
+          break;
+        case 'status':
+          const loginDateA = a.login_time ? new Date(a.login_time).toISOString().split('T')[0] : null;
+          const loginDateB = b.login_time ? new Date(b.login_time).toISOString().split('T')[0] : null;
+          const today = new Date().toISOString().split('T')[0];
+          aValue = a.login_time && !a.logout_time && loginDateA === today ? 'Online' : 'Offline';
+          bValue = b.login_time && !b.logout_time && loginDateB === today ? 'Online' : 'Offline';
+          break;
+        default:
+          aValue = a[column];
+          bValue = b[column];
+      }
+      
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (isAsc) {
+        return String(aValue).localeCompare(String(bValue));
+      } else {
+        return String(bValue).localeCompare(String(aValue));
+      }
+    });
+    
+    setDriverData(sortedData);
+  };
+
+  const getSortIcon = (column) => {
+    if (!orderDirection[column]) return null;
+    return orderDirection[column] === 'asc' ?
+      <ArrowUpwardIcon fontSize="small" /> :
+      <ArrowDownwardIcon fontSize="small" />;
+  };
+
   return (
     <Box>
       <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
@@ -185,15 +256,117 @@ export default function DriverLog() {
       {/* TABLE */}
       <TableContainer component={Paper}>
         <Table>
-          <TableHead sx={{ backgroundColor: '#10B981' }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white' }}>Driver Name</TableCell>
-              <TableCell sx={{ color: 'white' }}>Date</TableCell>
-              <TableCell sx={{ color: 'white' }}>Login Time</TableCell>
-              <TableCell sx={{ color: 'white' }}>Logout Time</TableCell>
-              <TableCell sx={{ color: 'white' }}>Duration</TableCell>
-              <TableCell sx={{ color: 'white' }}>Status</TableCell>
-              <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+          <TableHead sx={{ backgroundColor: '#00B074' }}>
+            <TableRow sx={{ height: 60 }}>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('driverName')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Driver Name
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('driverName')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('date')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Date
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('date')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('loginTime')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Login Time
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('loginTime')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('logoutTime')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Logout Time
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('logoutTime')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('duration')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Duration
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('duration')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('status')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Status
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -223,13 +396,19 @@ export default function DriverLog() {
               const status = log.login_time && !log.logout_time && loginDate === today ? 'Online' : 'Offline';
 
               return (
-                <TableRow key={index}>
-                  <TableCell>{driverName}</TableCell>
-                  <TableCell>{new Date(log.log_date).toLocaleDateString('en-GB')}</TableCell>
-                  <TableCell>{loginTime}</TableCell>
-                  <TableCell>{logoutTime}</TableCell>
-                  <TableCell>{duration}</TableCell>
-                  <TableCell>
+                <TableRow 
+                  key={index}
+                  sx={{
+                    '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                    height: 80
+                  }}
+                >
+                  <TableCell sx={{ py: 2 }}>{driverName}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{new Date(log.log_date).toLocaleDateString('en-GB')}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{loginTime}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{logoutTime}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{duration}</TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <Box
                       component="span"
                       sx={{
@@ -243,7 +422,7 @@ export default function DriverLog() {
                       {status}
                     </Box>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <Button
                       variant="outlined"
                       size="small"

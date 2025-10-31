@@ -9,7 +9,13 @@ import {
   Breadcrumbs,
   Link,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -32,9 +38,17 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 const InfoRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   margin: theme.spacing(1, 0),
+  alignItems: 'center', // Ensure vertical alignment
   '& > :first-of-type': {
     fontWeight: 'bold',
     marginRight: theme.spacing(1),
+    minWidth: '180px', // Add a fixed width for labels to accommodate longer text
+    flexShrink: 0, // Prevent the label from shrinking
+  },
+  '& > :last-child': {
+    flex: 1, // Allow the value to take up remaining space
+    display: 'flex',
+    alignItems: 'center' // Ensure vertical alignment for values
   }
 }));
 
@@ -150,24 +164,24 @@ const ProcurementView = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ pl: 0, width: '100%' }}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
         <Link color="inherit" href="/" underline="hover" sx={{ color: '#10B981' }}>
           Dashboard
         </Link>
-        <Link color="inherit" href="/admin-procurement" underline="hover" sx={{ color: '#10B981' }}>
+        <Link color="inherit" href="/procurement" underline="hover" sx={{ color: '#10B981' }}>
           Admin Procurement
         </Link>
         <Typography color="textPrimary">View Procurement</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+      <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
         View Procurement
       </Typography>
 
       <Box sx={{ mb: 4 }}>
         <GreenHeader elevation={0}>
-          <Typography variant="h6">Procurement Information</Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Procurement Information</Typography>
         </GreenHeader>
         <StyledPaper elevation={1}>
           <Grid container spacing={3}>
@@ -204,6 +218,7 @@ const ProcurementView = () => {
               </InfoRow>
               <InfoRow>
                 <Typography>Status :</Typography>
+                <Grid item xs={6} display="flex" justifyContent="flex-start">
                 <Chip
                   label={procurement.status}
                   size="small"
@@ -211,9 +226,10 @@ const ProcurementView = () => {
                     bgcolor: getStatusChipColor(procurement.status).bg,
                     color: getStatusChipColor(procurement.status).color,
                     borderRadius: '16px',
-                    fontWeight: 500
+                    fontWeight: "bold"
                   }}
                 />
+                </Grid>
               </InfoRow>
             </Grid>
           </Grid>
@@ -223,7 +239,7 @@ const ProcurementView = () => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <GreenHeader elevation={0}>
-            <Typography variant="h6">Vendor Information</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Vendor Information</Typography>
           </GreenHeader>
           <StyledPaper elevation={1}>
             <InfoRow>
@@ -242,7 +258,7 @@ const ProcurementView = () => {
         </Grid>
         <Grid item xs={12} md={6}>
           <GreenHeader elevation={0}>
-            <Typography variant="h6">Other Information</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Other Information</Typography>
           </GreenHeader>
           <StyledPaper elevation={1}>
             <InfoRow>
@@ -265,62 +281,52 @@ const ProcurementView = () => {
       {items.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <GreenHeader elevation={0}>
-            <Typography variant="h6">Procurement Items</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Procurement Items</Typography>
           </GreenHeader>
           <StyledPaper elevation={1}>
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={5}>
-                <Typography fontWeight="bold">Product</Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography fontWeight="bold" align="right">Qty</Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography fontWeight="bold" align="right">Price</Typography>
-              </Grid>
-              <Grid item xs={3}>
-                <Typography fontWeight="bold" align="right">Total</Typography>
-              </Grid>
-            </Grid>
-            {items.map((item, index) => {
-              // If item has name, quantity, unit_price (from parsed string)
-              if (item.name && item.quantity && item.unit_price) {
-                return (
-                  <Grid container spacing={2} key={index} sx={{ py: 1, borderBottom: '1px solid #eee' }}>
-                    <Grid item xs={5}>
-                      <Typography>{item.name}</Typography>
-                    </Grid>
-                    <Grid item xs={2}>
-                      <Typography align="right">{item.quantity} {item.unit}</Typography>
-                    </Grid>
-                    <Grid item xs={2}>
-                      <Typography align="right">₹{item.unit_price}</Typography>
-                    </Grid>
-                    <Grid item xs={3}>
-                      <Typography align="right">₹{(parseFloat(item.quantity) * parseFloat(item.unit_price)).toFixed(2)}</Typography>
-                    </Grid>
-                  </Grid>
-                );
-              }
-              // Fallback to old logic for array items
-              const product = products.find(p => p.pid === item.product_id || p.id === item.product_id);
-              return (
-                <Grid container spacing={2} key={index} sx={{ py: 1, borderBottom: '1px solid #eee' }}>
-                  <Grid item xs={5}>
-                    <Typography>{product ? product.product_name || product.name : 'Unknown Product'}</Typography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <Typography align="right">{item.quantity}</Typography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <Typography align="right">₹{item.unit_price}</Typography>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Typography align="right">₹{(item.quantity * item.unit_price).toFixed(2)}</Typography>
-                  </Grid>
-                </Grid>
-              );
-            })}
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Product</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Qty</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Price</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Total</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {items.map((item, index) => {
+                    // If item has name, quantity, unit_price (from parsed string)
+                    if (item.name && item.quantity && item.unit_price) {
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Typography>{item.name}</Typography>
+                            {item.type && <Typography variant="caption" color="text.secondary">{item.type}</Typography>}
+                          </TableCell>
+                          <TableCell>{item.quantity} {item.unit}</TableCell>
+                          <TableCell>₹{item.unit_price}</TableCell>
+                          <TableCell>₹{(parseFloat(item.quantity) * parseFloat(item.unit_price)).toFixed(2)}</TableCell>
+                        </TableRow>
+                      );
+                    }
+
+                    // For array items that need to look up the product
+                    const product = products.find(p => p.pid === item.product_id || p.id === item.product_id);
+                    const productName = product ? product.product_name || product.name : 'Unknown Product';
+
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>{productName}</TableCell>
+                        <TableCell>{item.quantity}</TableCell>
+                        <TableCell>₹{item.unit_price}</TableCell>
+                        <TableCell>₹{(item.quantity * item.unit_price).toFixed(2)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </StyledPaper>
         </Box>
       )}
@@ -329,16 +335,29 @@ const ProcurementView = () => {
         <Button
           variant="contained"
           sx={{
+            mr: 2,
+            bgcolor: '#10B981',
+            '&:hover': { bgcolor: '#059669' },
+            fontWeight: 'bold'
+          }}
+          onClick={() => navigate(`/vendor-invoice-view/${procurement.procurement_id}`)}
+        >
+          View Invoice
+        </Button>
+        <Button
+          variant="contained"
+          sx={{
             bgcolor: '#D1D5DB',
             color: '#000',
-            '&:hover': { bgcolor: '#9CA3AF' }
+            '&:hover': { bgcolor: '#9CA3AF' },
+            fontWeight: 'bold'
           }}
           onClick={handleBack}
         >
           Back
         </Button>
       </Box>
-    </Container>
+    </Box>
   );
 };
 
@@ -362,4 +381,4 @@ const getStatusChipColor = (status) => {
   }
 };
 
-export default ProcurementView; 
+export default ProcurementView;

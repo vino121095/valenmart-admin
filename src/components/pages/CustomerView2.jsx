@@ -18,6 +18,8 @@ import {
 } from '@mui/material';
 import { green, blue } from '@mui/material/colors';
 import { useLocation, useNavigate } from 'react-router-dom';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
@@ -28,6 +30,7 @@ export default function CustomerManagementView2() {
   const [orderItems, setOrderItems] = useState([]);
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [orderDirection, setOrderDirection] = useState({});
 
   useEffect(() => {
     if (!orderId) {
@@ -99,6 +102,63 @@ export default function CustomerManagementView2() {
 
   const grandTotal = subtotal + cgstAmount + sgstAmount + totalDeliveryFee;
 
+  const handleSort = (column) => {
+    const isAsc = orderDirection[column] === 'asc';
+    setOrderDirection({
+      ...orderDirection,
+      [column]: isAsc ? 'desc' : 'asc',
+    });
+
+    const sortedItems = [...orderItems].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch(column) {
+        case 'item':
+          aValue = a.product_id;
+          bValue = b.product_id;
+          break;
+        case 'productName':
+          aValue = a.Product?.product_name || '';
+          bValue = b.Product?.product_name || '';
+          break;
+        case 'quantity':
+          aValue = parseFloat(a.quantity || 0);
+          bValue = parseFloat(b.quantity || 0);
+          break;
+        case 'unitPrice':
+          aValue = parseFloat(a.unit_price || 0);
+          bValue = parseFloat(b.unit_price || 0);
+          break;
+        case 'total':
+          aValue = parseFloat(a.line_total || 0);
+          bValue = parseFloat(b.line_total || 0);
+          break;
+        default:
+          aValue = a[column];
+          bValue = b[column];
+      }
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (isAsc) {
+        return String(aValue).localeCompare(String(bValue));
+      } else {
+        return String(bValue).localeCompare(String(aValue));
+      }
+    });
+    
+    setOrderItems(sortedItems);
+  };
+
+  const getSortIcon = (column) => {
+    if (!orderDirection[column]) return null;
+    return orderDirection[column] === 'asc' ?
+      <ArrowUpwardIcon fontSize="small" /> :
+      <ArrowDownwardIcon fontSize="small" />;
+  };
+
   return (
     <Box>
         <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
@@ -141,23 +201,114 @@ export default function CustomerManagementView2() {
 
       <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
         <Table>
-          <TableHead sx={{ bgcolor: '#2CA66F' }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white' }}>Item</TableCell>
-              <TableCell sx={{ color: 'white' }}>Product Name</TableCell>
-              <TableCell sx={{ color: 'white' }}>Quantity</TableCell>
-              <TableCell sx={{ color: 'white' }}>Unit Price</TableCell>
-              <TableCell sx={{ color: 'white' }}>Total</TableCell>
+          <TableHead sx={{ bgcolor: '#00B074' }}>
+            <TableRow sx={{ height: 60 }}>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('item')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Item
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('item')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('productName')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Product Name
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('productName')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('quantity')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Quantity
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('quantity')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('unitPrice')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Unit Price
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('unitPrice')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('total')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Total
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('total')}</Box>
+                </Box>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {orderItems.map((row, index) => (
-              <TableRow key={index}>
-                <TableCell>{row.product_id}</TableCell>
-                <TableCell>{row.Product?.product_name}</TableCell>
-                <TableCell>{row.quantity}</TableCell>
-                <TableCell>{row.unit_price}</TableCell>
-                <TableCell>{row.line_total}</TableCell>
+              <TableRow 
+                key={index}
+                sx={{
+                  '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                  height: 80
+                }}
+              >
+                <TableCell sx={{ py: 2 }}>{row.product_id}</TableCell>
+                <TableCell sx={{ py: 2 }}>{row.Product?.product_name}</TableCell>
+                <TableCell sx={{ py: 2 }}>{row.quantity}</TableCell>
+                <TableCell sx={{ py: 2 }}>{row.unit_price}</TableCell>
+                <TableCell sx={{ py: 2 }}>{row.line_total}</TableCell>
               </TableRow>
             ))}
           </TableBody>

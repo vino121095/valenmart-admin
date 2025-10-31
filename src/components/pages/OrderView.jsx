@@ -9,7 +9,14 @@ import {
   Breadcrumbs,
   Link,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Avatar
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -32,9 +39,17 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 const InfoRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   margin: theme.spacing(1, 0),
+  alignItems: 'center', // Ensure vertical alignment
   '& > :first-of-type': {
     fontWeight: 'bold',
     marginRight: theme.spacing(1),
+    minWidth: '150px', // Increased width to accommodate longer labels
+    flexShrink: 0, // Prevent the label from shrinking
+  },
+  '& > :last-child': {
+    flex: 1, // Allow the value to take up remaining space
+    display: 'flex',
+    alignItems: 'center' // Ensure vertical alignment for values
   }
 }));
 
@@ -98,38 +113,38 @@ const OrderView = () => {
     }
   };
 
-const calculateOrderTotal = () => {
-  if (!orderData || !orderItems.length) return 0;
-  
-  const itemsForOrder = orderItems.filter(item => item.order_id === parseInt(orderData.id || orderData.oid));
-  
-  if (itemsForOrder.length === 0) return 0;
-  
-  const subtotal = itemsForOrder.reduce((sum, item) => {
-    const lineTotal = parseFloat(item.line_total) || 0;
-    return sum + lineTotal;
-  }, 0);
+  const calculateOrderTotal = () => {
+    if (!orderData || !orderItems.length) return 0;
 
-  let cgstAmount = 0;
-  let sgstAmount = 0;
+    const itemsForOrder = orderItems.filter(item => item.order_id === parseInt(orderData.id || orderData.oid));
 
-  itemsForOrder.forEach(item => {
-    const cgstRate = item.Product?.cgst || 0;
-    const sgstRate = item.Product?.sgst || 0;
-    const lineTotal = parseFloat(item.line_total) || 0;
+    if (itemsForOrder.length === 0) return 0;
 
-    cgstAmount += (lineTotal * cgstRate) / 100;
-    sgstAmount += (lineTotal * sgstRate) / 100;
-  });
+    const subtotal = itemsForOrder.reduce((sum, item) => {
+      const lineTotal = parseFloat(item.line_total) || 0;
+      return sum + lineTotal;
+    }, 0);
 
-  const totalDeliveryFee = itemsForOrder.reduce(
-    (acc, item) => acc + (Number(item.Product?.delivery_fee) || 0),
-    0
-  );
+    let cgstAmount = 0;
+    let sgstAmount = 0;
 
-  const grandTotal = Number(subtotal) + Number(cgstAmount) + Number(sgstAmount) + Number(totalDeliveryFee);
-  return grandTotal.toFixed(2);
-};
+    itemsForOrder.forEach(item => {
+      const cgstRate = item.Product?.cgst || 0;
+      const sgstRate = item.Product?.sgst || 0;
+      const lineTotal = parseFloat(item.line_total) || 0;
+
+      cgstAmount += (lineTotal * cgstRate) / 100;
+      sgstAmount += (lineTotal * sgstRate) / 100;
+    });
+
+    const totalDeliveryFee = itemsForOrder.reduce(
+      (acc, item) => acc + (Number(item.Product?.delivery_fee) || 0),
+      0
+    );
+
+    const grandTotal = Number(subtotal) + Number(cgstAmount) + Number(sgstAmount) + Number(totalDeliveryFee);
+    return grandTotal.toFixed(2);
+  };
 
   const handleNavigateToInvoiceView = () => {
     navigate(`/invoice-view/${orderData.id || orderData.oid}`, { state: { orderData } });
@@ -138,7 +153,6 @@ const calculateOrderTotal = () => {
   const handleBack = () => {
     navigate(-1);
   };
-
   if (loading) {
     return (
       <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -169,8 +183,10 @@ const calculateOrderTotal = () => {
     );
   }
 
+  const itemsForOrder = orderItems.filter(item => item.order_id === parseInt(orderData.id || orderData.oid));
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ pl: 0, width: '100%' }}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
         <Link color="inherit" href="/" underline="hover" sx={{ color: '#10B981' }}>
           Dashboard
@@ -181,13 +197,13 @@ const calculateOrderTotal = () => {
         <Typography color="textPrimary">View Order</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+      <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
         View Order
       </Typography>
 
       <Box sx={{ mb: 4 }}>
         <GreenHeader elevation={0}>
-          <Typography variant="h6">Order Information</Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Order Information</Typography>
         </GreenHeader>
         <StyledPaper elevation={1}>
           <Grid container spacing={3}>
@@ -216,16 +232,19 @@ const calculateOrderTotal = () => {
               </InfoRow>
               <InfoRow>
                 <Typography>Status :</Typography>
-                <Chip
-                  label={orderData.status}
-                  size="small"
-                  sx={{
-                    bgcolor: getStatusChipColor(orderData.status).bg,
-                    color: getStatusChipColor(orderData.status).color,
-                    borderRadius: '16px',
-                    fontWeight: 500
-                  }}
-                />
+                <Grid item xs={6} display="flex" justifyContent="flex-start">
+                  <Chip
+                    label={orderData.status}
+                    size="small"
+                    sx={{
+                      bgcolor: getStatusChipColor(orderData.status).bg,
+                      color: getStatusChipColor(orderData.status).color,
+                      borderRadius: '16px',
+                      fontWeight: "bold",
+                    }}
+                  />
+                </Grid>
+
               </InfoRow>
             </Grid>
           </Grid>
@@ -235,7 +254,7 @@ const calculateOrderTotal = () => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <GreenHeader elevation={0}>
-            <Typography variant="h6">Driver Information</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Driver Information</Typography>
           </GreenHeader>
           <StyledPaper elevation={1}>
             <InfoRow>
@@ -262,74 +281,66 @@ const calculateOrderTotal = () => {
         </Grid>
         <Grid item xs={12} md={6}>
           <GreenHeader elevation={0}>
-  <Typography variant="h6">Payment Information</Typography>
-</GreenHeader>
-<StyledPaper elevation={1}>
-  <InfoRow>
-    <Typography>Payment Method :</Typography>
-    <Typography sx={{ color: orderData.payment_method === 'cash on delivery' ? '#F97316' : '#10B981' }}>
-      {orderData.payment_method?.toUpperCase() || 'N/A'}
-    </Typography>
-  </InfoRow>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Payment Information</Typography>
+          </GreenHeader>
+          <StyledPaper elevation={1}>
+            <InfoRow>
+              <Typography>Payment Method :</Typography>
+              <Typography sx={{ color: orderData.payment_method === 'cash on delivery' ? '#F97316' : '#10B981' }}>
+                {orderData.payment_method?.toUpperCase() || 'N/A'}
+              </Typography>
+            </InfoRow>
 
-  <InfoRow>
-    <Typography>Payment Status :</Typography>
-    <Typography>
-      {orderData.status === 'Delivered' ? 'Paid' : (orderData.payment_status || 'Pending')}
-    </Typography>
-  </InfoRow>
+            <InfoRow>
+              <Typography>Payment Status :</Typography>
+              <Typography>
+                {orderData.status === 'Delivered' ? 'Paid' : (orderData.payment_status || 'Pending')}
+              </Typography>
+            </InfoRow>
 
-  {orderData.status === 'Delivered' && (
-    <InfoRow>
-      <Typography>Invoice No. :</Typography>
-      <Typography>{orderData.order_id || 'Not Generated'}</Typography>
-    </InfoRow>
-  )}
-</StyledPaper>
+            {orderData.status === 'Delivered' && (
+              <InfoRow>
+                <Typography>Invoice No. :</Typography>
+                <Typography>{orderData.order_id || 'Not Generated'}</Typography>
+              </InfoRow>
+            )}
+          </StyledPaper>
 
         </Grid>
       </Grid>
 
       {/* Order Items Section */}
-      {orderItems.filter(item => item.order_id === parseInt(orderData.id || orderData.oid)).length > 0 && (
+      {itemsForOrder.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <GreenHeader elevation={0}>
-            <Typography variant="h6">Order Items</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Order Items</Typography>
           </GreenHeader>
           <StyledPaper elevation={1}>
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={5}>
-                <Typography fontWeight="bold">Product</Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography fontWeight="bold" align="right">Qty</Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography fontWeight="bold" align="right">Price</Typography>
-              </Grid>
-              <Grid item xs={3}>
-                <Typography fontWeight="bold" align="right">Total</Typography>
-              </Grid>
-            </Grid>
-            {orderItems
-              .filter(item => item.order_id === parseInt(orderData.id || orderData.oid))
-              .map((item, index) => (
-                <Grid container spacing={2} key={index} sx={{ py: 1, borderBottom: '1px solid #eee' }}>
-                  <Grid item xs={5}>
-                    <Typography>{item.Product?.product_name || 'Unknown Product'}</Typography>
-                    {item.notes && <Typography variant="caption" color="text.secondary">{item.notes}</Typography>}
-                  </Grid>
-                  <Grid item xs={2}>
-                    <Typography align="right">{item.quantity}</Typography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <Typography align="right">₹{item.unit_price}</Typography>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Typography align="right">₹{item.line_total}</Typography>
-                  </Grid>
-                </Grid>
-              ))}
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Product</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Qty</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Price</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Total</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {itemsForOrder.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Typography>{item.Product?.product_name || 'Unknown Product'}</Typography>
+                        {item.notes && <Typography variant="caption" color="text.secondary">{item.notes}</Typography>}
+                      </TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell>₹{item.unit_price}</TableCell>
+                      <TableCell>₹{item.line_total}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </StyledPaper>
         </Box>
       )}
@@ -340,7 +351,8 @@ const calculateOrderTotal = () => {
           sx={{
             mr: 2,
             bgcolor: '#10B981',
-            '&:hover': { bgcolor: '#059669' }
+            '&:hover': { bgcolor: '#059669' },
+            fontWeight: 'bold'
           }}
           onClick={handleNavigateToInvoiceView}
         >
@@ -351,14 +363,15 @@ const calculateOrderTotal = () => {
           sx={{
             bgcolor: '#D1D5DB',
             color: '#000',
-            '&:hover': { bgcolor: '#9CA3AF' }
+            '&:hover': { bgcolor: '#9CA3AF' },
+            fontWeight: 'bold'
           }}
           onClick={handleBack}
         >
           Back
         </Button>
       </Box>
-    </Container>
+    </Box>
   );
 };
 

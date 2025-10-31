@@ -37,6 +37,8 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { useNavigate } from "react-router-dom";
 import baseurl from "../ApiService/ApiService";
 
@@ -123,6 +125,7 @@ const ProductCategoryManagement = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [orderDirection, setOrderDirection] = useState({});
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -227,6 +230,51 @@ const handleDeleteConfirm = async () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  const handleSort = (column) => {
+    const isAsc = orderDirection[column] === 'asc';
+    setOrderDirection({
+      ...orderDirection,
+      [column]: isAsc ? 'desc' : 'asc',
+    });
+
+    const sortedCategories = [...categories].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch(column) {
+        case 'id':
+          aValue = a.cid;
+          bValue = b.cid;
+          break;
+        case 'name':
+          aValue = a.category_name;
+          bValue = b.category_name;
+          break;
+        default:
+          aValue = a[column];
+          bValue = b[column];
+      }
+      
+      if (isNaN(aValue) || isNaN(bValue)) {
+        if (isAsc) {
+          return String(aValue).localeCompare(String(bValue));
+        } else {
+          return String(bValue).localeCompare(String(aValue));
+        }
+      }
+      
+      return isAsc ? aValue - bValue : bValue - aValue;
+    });
+    
+    setCategories(sortedCategories);
+  };
+
+  const getSortIcon = (column) => {
+    if (!orderDirection[column]) return null;
+    return orderDirection[column] === 'asc' ?
+      <ArrowUpwardIcon fontSize="small" /> :
+      <ArrowDownwardIcon fontSize="small" />;
+  };
+
   return (
     <Box>
       <Breadcrumbs
@@ -320,14 +368,67 @@ const handleDeleteConfirm = async () => {
           <CircularProgress sx={{ color: '#00AB6B' }} />
         </Box>
       ) : (
-        <StyledTableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }}>
-            <StyledTableHead sx={{color: "#00B074"}}>
-              <TableRow sx={{color: "#00B074"}}>
-                <StyledTableCell>Category ID</StyledTableCell>
-                <StyledTableCell>Category Name</StyledTableCell>
-                <StyledTableCell>Category Image</StyledTableCell>
-                <StyledTableCell>Action</StyledTableCell>
+        <StyledTableContainer component={Paper} sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}>
+          <Table sx={{ minWidth: 700 }} aria-label="customer table">
+            <StyledTableHead>
+              <TableRow>
+                <StyledTableCell 
+                  sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                  onClick={() => handleSort('id')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Category ID
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('id')}</Box>
+                  </Box>
+                </StyledTableCell>
+                <StyledTableCell 
+                  sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                  onClick={() => handleSort('name')}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Category Name
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('name')}</Box>
+                  </Box>
+                </StyledTableCell>
+                <StyledTableCell 
+                  sx={{ 
+                    backgroundColor: '#00B074',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                  }}
+                >
+                  Category Image
+                </StyledTableCell>
+                <StyledTableCell 
+                  align="center"
+                  sx={{ 
+                    backgroundColor: '#00B074',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                  }}
+                >
+                  Action
+                </StyledTableCell>
               </TableRow>
             </StyledTableHead>
             <TableBody>
@@ -335,10 +436,16 @@ const handleDeleteConfirm = async () => {
                 categories
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((category) => (
-                    <TableRow key={category.id}>
-                      <TableCell>{category.cid}</TableCell>
-                      <TableCell>{category.category_name}</TableCell>
-                      <TableCell>
+                    <TableRow 
+                      key={category.id}
+                      sx={{
+                        '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                        height: 80
+                      }}
+                    >
+                      <TableCell sx={{ py: 2 }}>{category.cid}</TableCell>
+                      <TableCell sx={{ py: 2 }}>{category.category_name}</TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         {category.category_image ? (
                           <ImagePreview 
                             src={category.category_image.startsWith('http') 
@@ -350,7 +457,7 @@ const handleDeleteConfirm = async () => {
                           'No image'
                         )}
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell align="center" sx={{ py: 2 }}>
                         <IconButton 
                           color="primary" 
                           size="small"
@@ -477,7 +584,7 @@ const handleDeleteConfirm = async () => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete the category "{categoryToDelete?.name}"? 
+            Are you sure you want to delete the category "{categoryToDelete?.category_name}"? 
             This action cannot be undone.
           </DialogContentText>
         </DialogContent>

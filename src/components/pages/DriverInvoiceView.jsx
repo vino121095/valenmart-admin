@@ -20,6 +20,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import baseurl from '../ApiService/ApiService';
+import velaanLogo from '../assets/velaanLogo.png';
 
 export default function DriverInvoiceView() {
   const { driverId } = useParams();
@@ -131,7 +132,7 @@ export default function DriverInvoiceView() {
         {/* Header - Driver and Invoice Title */}
         <Box sx={{ display: 'flex', borderBottom: '1px solid #000' }}>
           <Box sx={{ width: '120px', p: 1, borderRight: '1px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={driver.driver_image ? `/${driver.driver_image}` : '/velaan-logo.png'} alt="Driver" style={{ maxWidth: '100px', height: 'auto', borderRadius: '8px' }} />
+            <img src={velaanLogo} alt="Velaan Mart" style={{ maxWidth: '100px', height: 'auto' }} />
           </Box>
           <Box sx={{ flex: 1, p: 1, borderRight: '1px solid #000' }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px' }}>

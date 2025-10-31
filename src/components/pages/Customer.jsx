@@ -44,16 +44,16 @@ const headerCells = [
   { id: 'institution_name', label: 'Customer', sortable: true },
   { id: 'contact_person_email', label: 'Email', sortable: true },
   { id: 'contact_person_phone', label: 'Phone', sortable: true },
-  { id: 'address', label: 'Address', sortable: false },
+  { id: 'address', label: 'Address', sortable: true },
   { id: 'city', label: 'City', sortable: true },
   { id: 'state', label: 'State', sortable: true },
-  { id: 'postal_code', label: 'Pincode', sortable: false },
+  { id: 'postal_code', label: 'Pincode', sortable: true },
   { id: 'orderCount', label: 'Recent Orders', sortable: true },
   { id: 'status', label: 'Status', sortable: true },
   { id: 'action', label: 'Actions', sortable: false },
 ];
 
-export default function CustomerManagement() {
+export default function CustomerManagement({ reportMode = false }) {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
@@ -233,42 +233,46 @@ export default function CustomerManagement() {
 
   return (
     <Box>
+      {!reportMode && (
         <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
-        aria-label="breadcrumb"
-        sx={{ mb: 2 }}
-      >
-        <Link
-          underline="hover"
-          href="/"
-          sx={{
-            color: '#00A67E',
-            fontWeight: 500,
-            fontSize: '0.875rem'
-          }}
+          separator={<NavigateNextIcon fontSize="small" />}
+          aria-label="breadcrumb"
+          sx={{ mb: 2 }}
         >
-          Dashboard
-        </Link>
-        <Typography
-          sx={{
-            color: '#070d0cff',
-            fontWeight: 500,
-            fontSize: '0.875rem'
-          }}
-        >
-         Customer Management
-        </Typography>
-      </Breadcrumbs>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" fontWeight="bold">Customer Management</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddCustomer}
-        >
-          Add Customer
-        </Button>
-      </Box>
+          <Link
+            underline="hover"
+            href="/"
+            sx={{
+              color: '#00A67E',
+              fontWeight: 500,
+              fontSize: '0.875rem'
+            }}
+          >
+            Dashboard
+          </Link>
+          <Typography
+            sx={{
+              color: '#070d0cff',
+              fontWeight: 500,
+              fontSize: '0.875rem'
+            }}
+          >
+            Customer Management
+          </Typography>
+        </Breadcrumbs>
+      )}
+      {!reportMode && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" fontWeight="bold">Customer Management</Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddCustomer}
+          >
+            Add Customer
+          </Button>
+        </Box>
+      )}
 
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         <FormControl sx={{ minWidth: 180 }}>
@@ -311,16 +315,21 @@ export default function CustomerManagement() {
         <TableContainer>
           <Table sx={{ minWidth: 700 }} aria-label="customer table">
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ height: 60 }}>
                 {headerCells.map((cell) => (
                   <TableCell
                     key={cell.id}
                     align={cell.id === 'action' ? 'center' : 'left'}
-                    sx={{
-                      backgroundColor: '#00B074',
-                      cursor: cell.sortable ? 'pointer' : 'default',
-                      color: '#fff',
-                    }}
+                    sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
                     onClick={() => cell.sortable && handleSort(cell.id)}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -361,27 +370,30 @@ export default function CustomerManagement() {
                     <TableRow
                       hover
                       key={customer.cpid}
-                      sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' } }}
+                      sx={{ 
+                        '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                        height: 80
+                      }}
                     >
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         <Typography fontWeight="medium">{customer.institution_name}</Typography>
                         <Typography variant="body2" color="text.secondary">{customer.id}</Typography>
                       </TableCell>
-                      <TableCell>{customer.contact_person_email}</TableCell>
-                      <TableCell>{customer.contact_person_phone}</TableCell>
-                      <TableCell>{customer.address}</TableCell>
-                      <TableCell>{customer.city}</TableCell>
-                      <TableCell>{customer.state}</TableCell>
-                      <TableCell>{customer.postal_code}</TableCell>
-                      <TableCell align="center">{customer.orderCount}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ py: 2 }}>{customer.contact_person_email}</TableCell>
+                      <TableCell sx={{ py: 2 }}>{customer.contact_person_phone}</TableCell>
+                      <TableCell sx={{ py: 2 }}>{customer.address}</TableCell>
+                      <TableCell sx={{ py: 2 }}>{customer.city}</TableCell>
+                      <TableCell sx={{ py: 2 }}>{customer.state}</TableCell>
+                      <TableCell sx={{ py: 2 }}>{customer.postal_code}</TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>{customer.orderCount}</TableCell>
+                      <TableCell sx={{ py: 2 }}>
                         <Chip
                           label={customer.status}
                           color={statusColor[customer.status]}
                           variant="outlined"
                         />
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell align="center" sx={{ py: 2 }}>
                         <IconButton onClick={(e) => handleMenuClick(e, index)}>
                           <MoreVertIcon />
                         </IconButton>

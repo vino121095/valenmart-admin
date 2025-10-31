@@ -80,7 +80,7 @@ const theme = createTheme({
     }
   },
   typography: {
-    fontFamily: ['"Inter"', '"Poppins"', 'sans-serif'].join(','),
+    fontFamily: ['"Inter"', 'sans-serif'].join(','),
     h4: {
       fontWeight: 800,
       letterSpacing: '-1px'

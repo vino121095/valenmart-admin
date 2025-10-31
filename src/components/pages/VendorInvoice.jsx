@@ -25,6 +25,8 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
@@ -59,6 +61,9 @@ export default function ProcurementInvoiceManagement() {
 
     // For status dropdown options: derive unique statuses after fetch
     const [statusOptions, setStatusOptions] = useState([]);
+
+    // Sorting state
+    const [orderDirection, setOrderDirection] = useState({});
 
     // Fetch procurement data on mount
     useEffect(() => {
@@ -192,6 +197,71 @@ export default function ProcurementInvoiceManagement() {
         return status === 'Received' || status === 'Delivered';
     };
 
+    const handleSort = (column) => {
+        const isAsc = orderDirection[column] === 'asc';
+        setOrderDirection({
+            ...orderDirection,
+            [column]: isAsc ? 'desc' : 'asc',
+        });
+
+        const sortedProcurements = [...filteredProcurements].sort((a, b) => {
+            let aValue, bValue;
+
+            switch (column) {
+                case 'invoice':
+                    aValue = a.order_id;
+                    bValue = b.order_id;
+                    break;
+                case 'vendor':
+                    aValue = a.vendor?.contact_person || a.vendor_name || '';
+                    bValue = b.vendor?.contact_person || b.vendor_name || '';
+                    break;
+                case 'orderDate':
+                    aValue = new Date(a.order_date);
+                    bValue = new Date(b.order_date);
+                    break;
+                case 'deliveryDate':
+                    aValue = new Date(a.expected_delivery_date);
+                    bValue = new Date(b.expected_delivery_date);
+                    break;
+                case 'amount':
+                    aValue = calculateVendorAmount(a);
+                    bValue = calculateVendorAmount(b);
+                    break;
+                case 'status':
+                    aValue = a.status;
+                    bValue = b.status;
+                    break;
+                default:
+                    aValue = a[column];
+                    bValue = b[column];
+            }
+
+            if (aValue instanceof Date && bValue instanceof Date) {
+                return isAsc ? aValue - bValue : bValue - aValue;
+            }
+
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+                return isAsc ? aValue - bValue : bValue - aValue;
+            }
+
+            if (isAsc) {
+                return String(aValue).localeCompare(String(bValue));
+            } else {
+                return String(bValue).localeCompare(String(aValue));
+            }
+        });
+
+        setFilteredProcurements(sortedProcurements);
+    };
+
+    const getSortIcon = (column) => {
+        if (!orderDirection[column]) return null;
+        return orderDirection[column] === 'asc' ?
+            <ArrowUpwardIcon fontSize="small" /> :
+            <ArrowDownwardIcon fontSize="small" />;
+    };
+
     if (loading) {
         return (
             <Box
@@ -288,16 +358,118 @@ export default function ProcurementInvoiceManagement() {
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: '#00a67e' }}>
-                            <TableCell sx={{ color: 'white' }}>Invoice #</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Vendor</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Items</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Order Date</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Expected Delivery</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Vendor Amount (₹)</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Status</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-                            <TableCell sx={{ color: 'white' }}>Payment</TableCell>
+                        <TableRow sx={{ backgroundColor: '#00B074', height: 60 }}>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('invoice')}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Invoice #
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('invoice')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('vendor')}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Vendor
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('vendor')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Items</TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('orderDate')}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Order Date
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('orderDate')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('deliveryDate')}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Expected Delivery
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('deliveryDate')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('amount')}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Vendor Amount (₹)
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('amount')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    backgroundColor: '#00B074',
+                                    cursor: 'pointer',
+                                    color: '#fff',
+                                    fontWeight: 'bold',
+                                    py: 2,
+                                    '&:hover': {
+                                        backgroundColor: '#009e64',
+                                    }
+                                }}
+                                onClick={() => handleSort('status')}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Status
+                                    <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
+                                </Box>
+                            </TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Actions</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Payment</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -305,12 +477,18 @@ export default function ProcurementInvoiceManagement() {
                             const vendorAmt = calculateVendorAmount(proc);
                             const isReceived = isPaymentReceived(proc.status);
                             return (
-                                <TableRow key={proc.procurement_id || index}>
-                                    <TableCell>{proc.order_id}</TableCell>
-                                    <TableCell>
+                                <TableRow
+                                    key={proc.procurement_id || index}
+                                    sx={{
+                                        '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                                        height: 80
+                                    }}
+                                >
+                                    <TableCell sx={{ py: 2 }}>{proc.order_id}</TableCell>
+                                    <TableCell sx={{ py: 2 }}>
                                         {proc.vendor?.contact_person || proc.vendor_name || '-'}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell sx={{ py: 2 }}>
                                         {(() => {
                                             let itemsArr = [];
                                             try {
@@ -334,25 +512,25 @@ export default function ProcurementInvoiceManagement() {
                                                 : '-';
                                         })()}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell sx={{ py: 2 }}>
                                         {proc.order_date
                                             ? new Date(proc.order_date).toLocaleDateString()
                                             : '-'}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell sx={{ py: 2 }}>
                                         {proc.expected_delivery_date
                                             ? new Date(proc.expected_delivery_date).toLocaleDateString()
                                             : '-'}
                                     </TableCell>
-                                    <TableCell>₹{vendorAmt.toFixed(2)}</TableCell>
-                                    <TableCell>
+                                    <TableCell sx={{ py: 2 }}>₹{vendorAmt.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ py: 2 }}>
                                         <Chip
                                             label={getDisplayStatus(proc.status)}
                                             color={statusColor[proc.status] || 'default'}
                                             variant="outlined"
                                         />
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell sx={{ py: 2 }}>
                                         <IconButton onClick={(e) => handleMenuClick(e, index)}>
                                             <MoreVertIcon />
                                         </IconButton>
@@ -365,7 +543,7 @@ export default function ProcurementInvoiceManagement() {
                                             </Menu>
                                         )}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell sx={{ py: 2 }}>
                                         <Button
                                             variant={isReceived ? "outlined" : "contained"}
                                             color="success"

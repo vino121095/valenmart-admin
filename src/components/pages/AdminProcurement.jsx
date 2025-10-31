@@ -64,16 +64,16 @@ const AdminProcurement = ({
   }, []);
 
   const adminHeaderCells = [
-    { id: "id", label: "Order ID" },
+    { id: "id", label: "Order ID", sortable: true },
     { id: "type", label: "Type", sortable: true },
     { id: "vendorname", label: "Vendor Name", sortable: true },
-    { id: "product", label: "Product Image", sortable: true },
+    { id: "product", label: "Product Image", sortable: false },
     { id: "items", label: "Items", sortable: true },
     { id: "price", label: "Price", sortable: true },
     { id: "requestdata", label: "Request Date", sortable: true },
     { id: "pickupdriver", label: "Pickup Driver", sortable: true },
     { id: "status", label: "Status", sortable: true },
-    { id: "action", label: "Action" },
+    { id: "action", label: "Action", sortable: false },
   ];
 
   const StatusChip = ({ status }) => {
@@ -128,21 +128,21 @@ const AdminProcurement = ({
     };
 
     return (
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         {!imgError ? (
           <Avatar
             src={imageUrl}
             alt={itemName}
             variant="rounded"
             onError={handleImageError}
-            sx={{ width: 40, height: 40, border: "1px solid #e0e0e0" }}
+            sx={{ width: 50, height: 50, border: "1px solid #e0e0e0" }}
           />
         ) : (
           <Avatar
             variant="rounded"
             sx={{
-              width: 40,
-              height: 40,
+              width: 50,
+              height: 50,
               bgcolor: "#f0f0f0",
               color: "#9e9e9e",
               border: "1px solid #e0e0e0",
@@ -151,9 +151,6 @@ const AdminProcurement = ({
             <BrokenImage fontSize="small" />
           </Avatar>
         )}
-        <Typography variant="body2" noWrap sx={{ maxWidth: 120 }}>
-          {itemName}
-        </Typography>
       </Box>
     );
   };
@@ -398,15 +395,15 @@ const AdminProcurement = ({
       case "Approved":
         return (
           <Button
-          size="small"
-          color="warning"
-          variant="contained"
-          startIcon={<ReceiptLong fontSize="small" />}
-          onClick={() => handleView(orderId)}
-          sx={{ fontSize: "0.75rem", textTransform: "none" }}
-        >
-          View
-        </Button>
+            size="small"
+            color="warning"
+            variant="contained"
+            startIcon={<ReceiptLong fontSize="small" />}
+            onClick={() => handleView(orderId)}
+            sx={{ fontSize: "0.75rem", textTransform: "none" }}
+          >
+            View
+          </Button>
         );
       case "Picked":
         return (
@@ -446,11 +443,14 @@ const AdminProcurement = ({
             </Button>
             <Button
               size="small"
-              color="warning"
-              variant="contained"
-              startIcon={<ReceiptLong fontSize="small" />}
+              color="inherit"
+              variant="outlined"
+              sx={{
+                fontSize: '0.75rem',
+                textTransform: 'none',
+                whiteSpace: 'nowrap'
+              }}
               onClick={() => handleView(orderId)}
-              sx={{ fontSize: "0.75rem", textTransform: "none" }}
             >
               View
             </Button>
@@ -494,25 +494,25 @@ const AdminProcurement = ({
 
   return (
     <Paper
-      sx={{
-        width: "100%",
-        overflow: "hidden",
-        boxShadow: "none",
-        border: "1px solid #e0e0e0",
-      }}
+     sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}
     >
       <TableContainer>
-        <Table sx={{ minWidth: 700 }} aria-label="admin procurement table">
+        <Table sx={{ minWidth: 700 }} aria-label="customer table">
           <TableHead>
             <TableRow>
               {adminHeaderCells.map((cell) => (
                 <TableCell
                   key={cell.id}
-                  align={cell.id === "action" ? "center" : "left"}
+                  align={cell.id === 'action' ? 'center' : 'left'}
                   sx={{
-                    backgroundColor: "#00B074",
-                    cursor: cell.sortable ? "pointer" : "default",
-                    color: "#fff",
+                    backgroundColor: '#00B074',
+                    cursor: cell.sortable ? 'pointer' : 'default',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': cell.sortable ? {
+                      backgroundColor: '#009e64',
+                    } : {},
                   }}
                   onClick={() => cell.sortable && onSort(cell.id)}
                 >
@@ -535,25 +535,25 @@ const AdminProcurement = ({
                   key={row.procurement_id}
                   sx={{
                     "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" },
+                    height: 80,
                   }}
                 >
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>{row.vendor_name || row.vendor?.contact_person}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>{index + 1}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{row.type}</TableCell>
+                  <TableCell sx={{ py: 2 }}>{row.vendor_name || row.vendor?.contact_person}</TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <ProductImage
                       imageUrl={
                         row.procurement_product_image
                           ? `${baseurl}${row.procurement_product_image}`
-                          : `${baseurl}/procurement_product_image/${
-                              row.items && row.items[0] && typeof (row.items[0].product_name || row.items[0].name) === 'string'
-                                ? (row.items[0].product_name || row.items[0].name).toLowerCase().replace(/\s+/g, "-")
-                                : 'default'
-                            }.jpg`
+                          : `${baseurl}/procurement_product_image/${row.items && row.items[0] && typeof (row.items[0].product_name || row.items[0].name) === 'string'
+                            ? (row.items[0].product_name || row.items[0].name).toLowerCase().replace(/\s+/g, "-")
+                            : 'default'
+                          }.jpg`
                       }
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     {row.items.map((item, index) => {
                       const product = products.find(p => p.pid === item.product_id || p.id === item.product_id);
                       return (
@@ -564,7 +564,7 @@ const AdminProcurement = ({
                       );
                     })}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     {row.status === "Requested" ? (
                       row.items.length === 1 ? (
                         editingId === row.procurement_id ? (
@@ -612,14 +612,14 @@ const AdminProcurement = ({
                       )
                     )}
                   </TableCell>
-                  <TableCell>{row.order_date}</TableCell>
-                  <TableCell> {row.driver
-                          ? `${row.driver.first_name || ""} ${row.driver.last_name || ""}`.trim()
-                          : "N/A"}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ py: 2 }}>{row.order_date}</TableCell>
+                  <TableCell sx={{ py: 2 }}> {row.driver
+                    ? `${row.driver.first_name || ""} ${row.driver.last_name || ""}`.trim()
+                    : "N/A"}</TableCell>
+                  <TableCell sx={{ py: 2 }}>
                     <StatusChip status={row.status} />
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ py: 2 }}>
                     <ActionButtons
                       status={row.status}
                       orderId={row.procurement_id}

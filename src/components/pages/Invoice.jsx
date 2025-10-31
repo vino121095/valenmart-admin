@@ -9,6 +9,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
@@ -30,6 +32,7 @@ export default function InvoiceManagement() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [filteredOrders, setFilteredOrders] = useState([]);
+  const [orderDirection, setOrderDirection] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,6 +122,71 @@ export default function InvoiceManagement() {
     return subtotal + cgstAmount + sgstAmount + totalDeliveryFee;
   };
 
+  const handleSort = (column) => {
+    const isAsc = orderDirection[column] === 'asc';
+    setOrderDirection({
+      ...orderDirection,
+      [column]: isAsc ? 'desc' : 'asc',
+    });
+
+    const sortedOrders = [...filteredOrders].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch(column) {
+        case 'invoice':
+          aValue = a.order_id;
+          bValue = b.order_id;
+          break;
+        case 'customer':
+          aValue = a.CustomerProfile?.contact_person_name || '';
+          bValue = b.CustomerProfile?.contact_person_name || '';
+          break;
+        case 'orderDate':
+          aValue = new Date(a.order_date);
+          bValue = new Date(b.order_date);
+          break;
+        case 'deliveryDate':
+          aValue = new Date(a.delivery_date);
+          bValue = new Date(b.delivery_date);
+          break;
+        case 'amount':
+          aValue = calculateGrandTotal(a.oid);
+          bValue = calculateGrandTotal(b.oid);
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        default:
+          aValue = a[column];
+          bValue = b[column];
+      }
+      
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return isAsc ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (isAsc) {
+        return String(aValue).localeCompare(String(bValue));
+      } else {
+        return String(bValue).localeCompare(String(aValue));
+      }
+    });
+    
+    setFilteredOrders(sortedOrders);
+  };
+
+  const getSortIcon = (column) => {
+    if (!orderDirection[column]) return null;
+    return orderDirection[column] === 'asc' ?
+      <ArrowUpwardIcon fontSize="small" /> :
+      <ArrowDownwardIcon fontSize="small" />;
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -203,29 +271,137 @@ export default function InvoiceManagement() {
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#00A67E' }}>
-              <TableCell sx={{ color: 'white' }}>Invoice #</TableCell>
-              <TableCell sx={{ color: 'white' }}>Customer</TableCell>
-              <TableCell sx={{ color: 'white' }}>Order Date</TableCell>
-              <TableCell sx={{ color: 'white' }}>Delivery Date</TableCell>
-              <TableCell sx={{ color: 'white' }}>Amount (₹)</TableCell>
-              <TableCell sx={{ color: 'white' }}>Status</TableCell>
-              <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-              <TableCell sx={{ color: 'white' }}>Payment</TableCell>
+            <TableRow sx={{ backgroundColor: '#00B074', height: 60 }}>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('invoice')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Invoice #
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('invoice')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('customer')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Customer
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('customer')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+               sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('orderDate')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Order Date
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('orderDate')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('deliveryDate')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Delivery Date
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('deliveryDate')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('amount')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Amount (₹)
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('amount')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell 
+                sx={{ 
+                    backgroundColor: '#00B074',
+                    cursor: 'pointer',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: '#009e64',
+                    }
+                  }}
+                onClick={() => handleSort('status')}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Status
+                  <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
+                </Box>
+              </TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Actions</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Payment</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredOrders.map((order, index) => (
-              <TableRow key={index}>
-                <TableCell>{order.order_id}</TableCell>
-                <TableCell>{order.CustomerProfile?.contact_person_name}</TableCell>
-                <TableCell>{new Date(order.order_date).toLocaleDateString()}</TableCell>
-                <TableCell>{new Date(order.delivery_date).toLocaleDateString()}</TableCell>
-                <TableCell>₹{calculateGrandTotal(order.oid).toFixed(2)}</TableCell>
-                <TableCell>
+              <TableRow 
+                key={index}
+                sx={{
+                  '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                  height: 80
+                }}
+              >
+                <TableCell sx={{ py: 2 }}>{order.order_id}</TableCell>
+                <TableCell sx={{ py: 2 }}>{order.CustomerProfile?.contact_person_name}</TableCell>
+                <TableCell sx={{ py: 2 }}>{new Date(order.order_date).toLocaleDateString()}</TableCell>
+                <TableCell sx={{ py: 2 }}>{new Date(order.delivery_date).toLocaleDateString()}</TableCell>
+                <TableCell sx={{ py: 2 }}>₹{calculateGrandTotal(order.oid).toFixed(2)}</TableCell>
+                <TableCell sx={{ py: 2 }}>
                   <Chip label={order.status} color={statusColor[order.status]} variant="outlined" />
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ py: 2 }}>
                   <IconButton onClick={(e) => handleMenuClick(e, index)}>
                     <MoreVertIcon />
                   </IconButton>
@@ -238,7 +414,7 @@ export default function InvoiceManagement() {
                     </Menu>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ py: 2 }}>
                   <Button
                     variant={order.status === 'Delivered' ? 'outlined' : 'contained'}
                     color="success"

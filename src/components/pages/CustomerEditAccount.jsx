@@ -215,7 +215,7 @@ export default function CustomerEditAccount() {
             <Grid item xs={12}>
               <Box sx={{ mt: 2, justifyContent: 'flex-end' }}>
                 <Button type="submit" variant="contained" sx={{ bgcolor: '#00A67E', '&:hover': { bgcolor: '#007a5e' }, mr: 2 }}>
-                  Edid Customer
+                  Edit Customer
                 </Button>
                 <Button variant="outlined" onClick={() => navigate('/customer')}>
                   Cancel

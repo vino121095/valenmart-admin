@@ -179,15 +179,6 @@ const ViewCategory = () => {
                   <Typography variant="h6" fontWeight="bold" gutterBottom>
                     {category.category_name}
                   </Typography>
-                  <Chip
-                    label={category.is_active ? 'Active' : 'Inactive'}
-                    size="small"
-                    sx={{
-                      backgroundColor: category.is_active ? '#e8f5e9' : '#ffebee',
-                      color: category.is_active ? '#2e7d32' : '#c62828',
-                      fontWeight: 'normal'
-                    }}
-                  />
                 </CardContent>
               </Card>
             </Grid>
@@ -256,28 +247,6 @@ const ViewCategory = () => {
                     </Box>
                     <Typography variant="body2" sx={{ ml: 0 }}>
                       {category.category_name}
-                    </Typography>
-                  </Paper>
-                </Grid>
-
-                {/* Second Row */}
-                <Grid item xs={12} sm={6}>
-                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="body2" fontWeight="bold" color="#000000">
-                        Status
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" sx={{ ml: 0 }}>
-                      <Chip
-                        label={category.is_active ? 'Active' : 'Inactive'}
-                        size="small"
-                        sx={{
-                          backgroundColor: category.is_active ? '#e8f5e9' : '#ffebee',
-                          color: category.is_active ? '#2e7d32' : '#c62828',
-                          fontWeight: 'normal'
-                        }}
-                      />
                     </Typography>
                   </Paper>
                 </Grid>

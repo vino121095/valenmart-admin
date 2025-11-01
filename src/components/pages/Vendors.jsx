@@ -192,9 +192,9 @@ export default function VendorPending({ reportMode = false }) {
     { id: 'email', label: 'Email', sortable: true },
     { id: 'phone', label: 'Phone Number', sortable: true },
     { id: 'address', label: 'Address', sortable: true },
-    { id: 'city', label: 'City', sortable: true },
-    { id: 'state', label: 'State/Province', sortable: true },
-    { id: 'pincode', label: 'Zip Code', sortable: true },
+    // { id: 'city', label: 'City', sortable: true },
+    // { id: 'state', label: 'State/Province', sortable: true },
+    // { id: 'pincode', label: 'Zip Code', sortable: true },
     { id: 'status', label: 'Status', sortable: true },
     { id: 'actions', label: 'Actions', sortable: false },
   ];
@@ -326,9 +326,9 @@ export default function VendorPending({ reportMode = false }) {
                 <TableCell sx={{ py: 2 }}>{vendor.email}</TableCell>
                 <TableCell sx={{ py: 2 }}>{vendor.phone}</TableCell>
                 <TableCell sx={{ py: 2 }}>{vendor.address}</TableCell>
-                <TableCell sx={{ py: 2 }}>{vendor.city}</TableCell>
-                <TableCell sx={{ py: 2 }}>{vendor.state}</TableCell>
-                <TableCell sx={{ py: 2 }}>{vendor.pincode}</TableCell>
+                {/* <TableCell sx={{ py: 2 }}>{vendor.city}</TableCell> */}
+                {/* <TableCell sx={{ py: 2 }}>{vendor.state}</TableCell> */}
+                {/* <TableCell sx={{ py: 2 }}>{vendor.pincode}</TableCell> */}
                 <TableCell sx={{ py: 2 }}>
                   <Typography sx={{ color: getStatusColor(vendor.status), fontWeight: 'bold' }}>
                     {vendor.status}

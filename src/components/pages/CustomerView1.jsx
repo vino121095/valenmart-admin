@@ -162,23 +162,23 @@ export default function CustomerManagementView1() {
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Typography><strong>Customer ID:</strong> #{customer.cpid}</Typography>
-            <Typography><strong>Customer Name:</strong> {customer.institution_name}</Typography>
-            <Typography><strong>Email:</strong> {customer.contact_person_email}</Typography>
+            <Typography><strong>Customer ID:</strong><span style={{marginLeft: "50px" }}>  #{customer.cpid}</span></Typography>
+            <Typography><strong>Customer Name:</strong><span style={{marginLeft: "20px" }}>  {customer.institution_name}</span></Typography>
+            <Typography><strong>Email:</strong><span style={{marginLeft: "102px" }}>  {customer.contact_person_email}</span></Typography>
             <Typography>
               <strong>Status:</strong>{' '}
-              <Chip label="Active" size="small" sx={{ bgcolor: green[100], color: green[800], ml: 1 }} />
+              <Chip label="Active" size="small" sx={{ bgcolor: green[100], color: green[800], marginLeft: "90px" }} />
             </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Typography><strong>Contact Person:</strong> {customer.contact_person_name}</Typography>
-            <Typography><strong>Phone Number:</strong> {customer.contact_person_phone}</Typography>
+            <Typography><strong>Contact Person:</strong><span style={{marginLeft: "50px" }}>  {customer.contact_person_name}</span></Typography>
+            <Typography><strong>Phone Number:</strong><span style={{marginLeft: "54px" }}>  {customer.contact_person_phone}</span></Typography>
             <Typography>
-              <strong>Billing Address:</strong>{' '}
-              {customer.address}, {customer.city}, {customer.state} - {customer.postal_code}
+              <strong>Billing Address:</strong>{' '}<span style={{marginLeft: "54px" }}> 
+              {customer.address}, {customer.city}, {customer.state} - {customer.postal_code}</span>
             </Typography>
-            <Typography><strong>Registration Date:</strong>{' '}
-              {new Date(customer.createdAt).toLocaleDateString()}
+            <Typography><strong>Registration Date:</strong>{' '}<span style={{marginLeft: "38px" }}> 
+              {new Date(customer.createdAt).toLocaleDateString()}</span>
             </Typography>
           </Grid>
         </Grid>

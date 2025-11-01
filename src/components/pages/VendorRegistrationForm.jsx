@@ -162,7 +162,7 @@ export default function VendorRegistrationForm() {
 
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth margin="normal">
+              <FormControl fullWidth margin="normal" sx={{ width: 180 }}>
                 <InputLabel id="type-label">Account Type</InputLabel>
                 <Select
                   labelId="type-label"

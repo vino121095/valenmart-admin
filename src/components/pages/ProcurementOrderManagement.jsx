@@ -762,7 +762,7 @@ const ProcurementOrderManagement = ({ reportMode = false }) => {
                           return (
                             <Typography key={idx} variant="body2" noWrap sx={{ maxWidth: 180 }}>
                               {product ? product.product_name || product.name : 'Product'}
-                              {` (${item.quantity} 1/kg)`}
+                              {` (${item.quantity} kg)`}
                             </Typography>
                           );
                         })}
@@ -1051,7 +1051,7 @@ const ProcurementOrderManagement = ({ reportMode = false }) => {
             return (
               <Box key={item.product_id} sx={{ mb: 2 }}>
                 <Typography variant="body2">
-                  {product ? product.product_name || product.name : 'Product'} ({item.quantity} 1/kg)
+                  {product ? product.product_name || product.name : 'Product'} ({item.quantity} kg)
                 </Typography>
                 <TextField
                   value={multiEditAmounts[item.product_id] || ''}

@@ -457,7 +457,7 @@ export default function DeliveryManagement() {
           <Paper elevation={1} sx={{ p: 2 }}>
             <Typography variant="subtitle2" color="text.secondary">Active Drivers</Typography>
             <Typography variant="h5">
-              {summary.activeDrivers} <Typography component="span" sx={{ color: 'green', fontSize: 16 }}>+2</Typography>
+              {summary.activeDrivers} <Typography component="span" sx={{ color: 'green', fontSize: 16 }}></Typography>
             </Typography>
           </Paper>
         </Grid>

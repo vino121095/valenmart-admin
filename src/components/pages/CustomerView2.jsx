@@ -14,8 +14,7 @@ import {
   TableContainer,
   CircularProgress,
   Breadcrumbs,
-  Link,
-  TablePagination
+  Link
 } from '@mui/material';
 import { green, blue } from '@mui/material/colors';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -23,6 +22,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import baseurl from '../ApiService/ApiService';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import { MarginOutlined } from '@mui/icons-material';
 
 export default function CustomerManagementView2() {
   const { state } = useLocation();
@@ -32,10 +32,6 @@ export default function CustomerManagementView2() {
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [orderDirection, setOrderDirection] = useState({});
-  
-  // Pagination state
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     if (!orderId) {
@@ -164,31 +160,15 @@ export default function CustomerManagementView2() {
       <ArrowDownwardIcon fontSize="small" />;
   };
 
-  // Pagination handlers
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  // Calculate paginated data
-  const paginatedOrderItems = orderItems.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
-
   return (
     <Box>
-      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
         <Link underline="hover" href="/">Dashboard</Link>
         <Link underline="hover" href="/customer">Customer Management</Link>
         <Typography color="text.primary">Order Details</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{mb: 3}}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
         Order Details - #{order_id}
       </Typography>
 
@@ -198,19 +178,19 @@ export default function CustomerManagementView2() {
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Typography><strong>Order ID:</strong> {order_id}</Typography>
-            <Typography><strong>Order Date:</strong> {order_date}</Typography>
-            <Typography><strong>Customer:</strong> {contact_person_email}</Typography>
+            <Typography sx={{mb: 2}}><strong>Order ID:</strong><span style={{marginLeft: "50px" }}> {order_id}</span></Typography>
+            <Typography sx={{mb: 2}}><strong>Order Date:</strong><span style={{marginLeft: "30px" }}>  {order_date}</span></Typography>
+            <Typography sx={{mb: 2}}><strong>Customer:</strong><span style={{marginLeft: "40px" }}>  {contact_person_email}</span> </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Typography><strong>Amount:</strong> ₹{grandTotal.toFixed(2)}</Typography>
-            <Typography>
+            <Typography sx={{mb: 2}}><strong>Amount:</strong><span style={{marginLeft: "50px" }}>  ₹{grandTotal.toFixed(2)}</span></Typography>
+            <Typography sx={{mb: 2}}>
               <strong>Status:</strong>{' '}
-              <Chip label={status} size="small" sx={{ bgcolor: blue[50], color: blue[600], ml: 1 }} />
+              <Chip label={status} size="small" sx={{ bgcolor: blue[50], color: blue[600], marginLeft: "60px" }} />
             </Typography>
-            <Typography>
+            <Typography sx={{mb: 2}}>
               <strong>Payment:</strong>{' '}
-              <Chip label={payment_method} size="small" sx={{ bgcolor: green[100], color: green[800], ml: 1 }} />
+              <Chip label={payment_method} size="small" sx={{ bgcolor: green[100], color: green[800], marginLeft: "40px" }} />
             </Typography>
           </Grid>
         </Grid>
@@ -313,48 +293,23 @@ export default function CustomerManagementView2() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {orderItems.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center">
-                  No order items found.
-                </TableCell>
+            {orderItems.map((row, index) => (
+              <TableRow 
+                key={index}
+                sx={{
+                  '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                  height: 80
+                }}
+              >
+                <TableCell sx={{ py: 2 }}>{row.product_id}</TableCell>
+                <TableCell sx={{ py: 2 }}>{row.Product?.product_name}</TableCell>
+                <TableCell sx={{ py: 2 }}>{row.quantity}</TableCell>
+                <TableCell sx={{ py: 2 }}>{row.unit_price}</TableCell>
+                <TableCell sx={{ py: 2 }}>{row.line_total}</TableCell>
               </TableRow>
-            ) : (
-              paginatedOrderItems.map((row, index) => (
-                <TableRow 
-                  key={index}
-                  sx={{
-                    '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-                    height: 80
-                  }}
-                >
-                  <TableCell sx={{ py: 2 }}>{row.product_id}</TableCell>
-                  <TableCell sx={{ py: 2 }}>{row.Product?.product_name}</TableCell>
-                  <TableCell sx={{ py: 2 }}>{row.quantity}</TableCell>
-                  <TableCell sx={{ py: 2 }}>{row.unit_price}</TableCell>
-                  <TableCell sx={{ py: 2 }}>{row.line_total}</TableCell>
-                </TableRow>
-              ))
-            )}
+            ))}
           </TableBody>
         </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={orderItems.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{
-            borderTop: '1px solid #e0e0e0',
-            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-              fontSize: '14px',
-              fontWeight: 400,
-              color: '#666'
-            }
-          }}
-        />
       </TableContainer>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
@@ -405,6 +360,7 @@ export default function CustomerManagementView2() {
         >
           Download Invoice
         </Button>
+
       </Box>
     </Box>
   );

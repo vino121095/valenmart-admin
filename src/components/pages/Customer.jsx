@@ -44,10 +44,10 @@ const headerCells = [
   { id: 'institution_name', label: 'Customer', sortable: true },
   { id: 'contact_person_email', label: 'Email', sortable: true },
   { id: 'contact_person_phone', label: 'Phone', sortable: true },
-  { id: 'address', label: 'Address', sortable: true },
-  { id: 'city', label: 'City', sortable: true },
-  { id: 'state', label: 'State', sortable: true },
-  { id: 'postal_code', label: 'Pincode', sortable: true },
+  // { id: 'address', label: 'Address', sortable: true },
+  // { id: 'city', label: 'City', sortable: true },
+  // { id: 'state', label: 'State', sortable: true },
+  // { id: 'postal_code', label: 'Pincode', sortable: true },
   { id: 'orderCount', label: 'Recent Orders', sortable: true },
   { id: 'status', label: 'Status', sortable: true },
   { id: 'action', label: 'Actions', sortable: false },
@@ -381,10 +381,10 @@ export default function CustomerManagement({ reportMode = false }) {
                       </TableCell>
                       <TableCell sx={{ py: 2 }}>{customer.contact_person_email}</TableCell>
                       <TableCell sx={{ py: 2 }}>{customer.contact_person_phone}</TableCell>
-                      <TableCell sx={{ py: 2 }}>{customer.address}</TableCell>
-                      <TableCell sx={{ py: 2 }}>{customer.city}</TableCell>
+                      {/* <TableCell sx={{ py: 2 }}>{customer.address}</TableCell> */}
+                      {/* <TableCell sx={{ py: 2 }}>{customer.city}</TableCell>
                       <TableCell sx={{ py: 2 }}>{customer.state}</TableCell>
-                      <TableCell sx={{ py: 2 }}>{customer.postal_code}</TableCell>
+                      <TableCell sx={{ py: 2 }}>{customer.postal_code}</TableCell> */}
                       <TableCell align="center" sx={{ py: 2 }}>{customer.orderCount}</TableCell>
                       <TableCell sx={{ py: 2 }}>
                         <Chip

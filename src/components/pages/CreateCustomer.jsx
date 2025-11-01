@@ -149,7 +149,7 @@ export default function CustomerRegistrationForm() {
             </Grid>
 
             <Grid item xs={12}>
-              <TextField fullWidth select label="Institution Type" name="institution_type" value={formData.institution_type} onChange={handleChange} error={!!errors.institution_type} helperText={errors.institution_type} required>
+              <TextField sx={{ width: 180 }} select label="Institution Type" name="institution_type" value={formData.institution_type} onChange={handleChange} error={!!errors.institution_type} helperText={errors.institution_type} required>
                 <MenuItem value="School">School</MenuItem>
                 <MenuItem value="College">College</MenuItem>
                 <MenuItem value="University">University</MenuItem>

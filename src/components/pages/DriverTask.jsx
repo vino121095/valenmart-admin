@@ -24,7 +24,8 @@ import {
   DialogActions,
   IconButton,
   Breadcrumbs,
-  Link
+  Link,
+  TablePagination
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -61,6 +62,14 @@ const DriverTask = () => {
   const [orderDirection, setOrderDirection] = useState({});
   const [sortedCustomerTasks, setSortedCustomerTasks] = useState([]);
   const [sortedVendorTasks, setSortedVendorTasks] = useState([]);
+  
+  // Pagination states
+  const [customerPage, setCustomerPage] = useState(0);
+  const [customerRowsPerPage, setCustomerRowsPerPage] = useState(10);
+  const [vendorPage, setVendorPage] = useState(0);
+  const [vendorRowsPerPage, setVendorRowsPerPage] = useState(10);
+  const [allPage, setAllPage] = useState(0);
+  const [allRowsPerPage, setAllRowsPerPage] = useState(10);
 
   const handleViewDetails = (task) => {
     setSelectedTask(task);
@@ -264,169 +273,219 @@ const DriverTask = () => {
     setSortedVendorTasks(vendorTasks);
   }, [tasks]);
 
-  const renderTaskTable = (taskList, setDataFn) => {
+  // Pagination handlers
+  const handleCustomerChangePage = (event, newPage) => {
+    setCustomerPage(newPage);
+  };
+
+  const handleCustomerChangeRowsPerPage = (event) => {
+    setCustomerRowsPerPage(parseInt(event.target.value, 10));
+    setCustomerPage(0);
+  };
+
+  const handleVendorChangePage = (event, newPage) => {
+    setVendorPage(newPage);
+  };
+
+  const handleVendorChangeRowsPerPage = (event) => {
+    setVendorRowsPerPage(parseInt(event.target.value, 10));
+    setVendorPage(0);
+  };
+
+  const handleAllChangePage = (event, newPage) => {
+    setAllPage(newPage);
+  };
+
+  const handleAllChangeRowsPerPage = (event) => {
+    setAllRowsPerPage(parseInt(event.target.value, 10));
+    setAllPage(0);
+  };
+
+  const renderTaskTable = (taskList, setDataFn, page, rowsPerPage, handleChangePage, handleChangeRowsPerPage) => {
+    // Calculate the paginated data
+    const paginatedList = taskList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    
     return (
-      <TableContainer component={Paper} sx={{ borderRadius: 2, mt: 2 }}>
-        <Table>
-          <TableHead sx={{ bgcolor: '#00B074' }}>
-            <TableRow sx={{ height: 60 }}>
-              <TableCell 
-                sx={{ 
-                    backgroundColor: '#00B074',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    py: 2,
-                    '&:hover': {
-                      backgroundColor: '#009e64',
-                    }
-                  }}
-                onClick={() => handleSort('taskId', taskList, setDataFn)}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  Task ID
-                  <Box sx={{ ml: 0.5 }}>{getSortIcon('taskId')}</Box>
-                </Box>
-              </TableCell>
-              <TableCell 
-               sx={{ 
-                    backgroundColor: '#00B074',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    py: 2,
-                    '&:hover': {
-                      backgroundColor: '#009e64',
-                    }
-                  }}
-                onClick={() => handleSort('driverName', taskList, setDataFn)}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  Driver Name
-                  <Box sx={{ ml: 0.5 }}>{getSortIcon('driverName')}</Box>
-                </Box>
-              </TableCell>
-              <TableCell 
-                sx={{ 
-                    backgroundColor: '#00B074',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    py: 2,
-                    '&:hover': {
-                      backgroundColor: '#009e64',
-                    }
-                  }}
-                onClick={() => handleSort('orderId', taskList, setDataFn)}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  Order/Procurement ID
-                  <Box sx={{ ml: 0.5 }}>{getSortIcon('orderId')}</Box>
-                </Box>
-              </TableCell>
-              <TableCell 
-                sx={{ 
-                    backgroundColor: '#00B074',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    py: 2,
-                    '&:hover': {
-                      backgroundColor: '#009e64',
-                    }
-                  }}
-                onClick={() => handleSort('date', taskList, setDataFn)}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  Date & Time
-                  <Box sx={{ ml: 0.5 }}>{getSortIcon('date')}</Box>
-                </Box>
-              </TableCell>
-              <TableCell 
-                sx={{ 
-                    backgroundColor: '#00B074',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    py: 2,
-                    '&:hover': {
-                      backgroundColor: '#009e64',
-                    }
-                  }}
-                onClick={() => handleSort('status', taskList, setDataFn)}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  Status
-                  <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
-                </Box>
-              </TableCell>
-              <TableCell 
-                sx={{ 
-                    backgroundColor: '#00B074',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    py: 2,
-                    '&:hover': {
-                      backgroundColor: '#009e64',
-                    }
-                  }}
-                onClick={() => handleSort('charges', taskList, setDataFn)}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  Charges
-                  <Box sx={{ ml: 0.5 }}>{getSortIcon('charges')}</Box>
-                </Box>
-              </TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {taskList.map((task, index) => (
-              <TableRow 
-                key={task.id}
-                sx={{
-                  '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-                  height: 80
-                }}
-              >
-                <TableCell sx={{ py: 2 }}>{index + 1}</TableCell>
-                <TableCell sx={{ py: 2 }}>
-                  {task.driver ? `${task.driver.first_name} ${task.driver.last_name}` : 'N/A'}
-                </TableCell>
-                <TableCell sx={{ py: 2 }}>
-                  {task.deliveryNo ? `${task.deliveryNo}` : task.procurement_id ? `${task.procurement_id}` : 'N/A'}
-                </TableCell>
-                <TableCell sx={{ py: 2 }}>{`${task.date} | ${task.timeSlot}`}</TableCell>
-                <TableCell sx={{ py: 2 }}>
-                  <Chip
-                    label={task.status}
-                    size="small"
-                    sx={{
-                      bgcolor: task.status === 'Active' ? '#E6FFF2' :
-                        task.status === 'Completed' ? '#E6F7FF' :
-                          task.status === 'Cancelled' ? '#FFEBEE' : '#FFF7E6',
-                      color: task.status === 'Active' ? '#2CA66F' :
-                        task.status === 'Completed' ? '#1976D2' :
-                          task.status === 'Cancelled' ? '#F44336' : '#FF9800'
+      <>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, mt: 2 }}>
+          <Table>
+            <TableHead sx={{ bgcolor: '#00B074' }}>
+              <TableRow sx={{ height: 60 }}>
+                <TableCell 
+                  sx={{ 
+                      backgroundColor: '#00B074',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      py: 2,
+                      '&:hover': {
+                        backgroundColor: '#009e64',
+                      }
                     }}
-                  />
+                  onClick={() => handleSort('taskId', taskList, setDataFn)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Task ID
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('taskId')}</Box>
+                  </Box>
                 </TableCell>
-                <TableCell sx={{ py: 2 }}>{task.charges || 'N/A'}</TableCell>
-                <TableCell sx={{ py: 2 }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => handleViewDetails(task)}
-                  >
-                    View
-                  </Button>
+                <TableCell 
+                 sx={{ 
+                      backgroundColor: '#00B074',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      py: 2,
+                      '&:hover': {
+                        backgroundColor: '#009e64',
+                      }
+                    }}
+                  onClick={() => handleSort('driverName', taskList, setDataFn)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Driver Name
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('driverName')}</Box>
+                  </Box>
                 </TableCell>
+                <TableCell 
+                  sx={{ 
+                      backgroundColor: '#00B074',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      py: 2,
+                      '&:hover': {
+                        backgroundColor: '#009e64',
+                      }
+                    }}
+                  onClick={() => handleSort('orderId', taskList, setDataFn)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Order/Procurement ID
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('orderId')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                      backgroundColor: '#00B074',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      py: 2,
+                      '&:hover': {
+                        backgroundColor: '#009e64',
+                      }
+                    }}
+                  onClick={() => handleSort('date', taskList, setDataFn)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Date & Time
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('date')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                      backgroundColor: '#00B074',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      py: 2,
+                      '&:hover': {
+                        backgroundColor: '#009e64',
+                      }
+                    }}
+                  onClick={() => handleSort('status', taskList, setDataFn)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Status
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                      backgroundColor: '#00B074',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      py: 2,
+                      '&:hover': {
+                        backgroundColor: '#009e64',
+                      }
+                    }}
+                  onClick={() => handleSort('charges', taskList, setDataFn)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Charges
+                    <Box sx={{ ml: 0.5 }}>{getSortIcon('charges')}</Box>
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 2 }}>Action</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {paginatedList.map((task, index) => (
+                <TableRow 
+                  key={task.id}
+                  sx={{
+                    '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                    height: 80
+                  }}
+                >
+                  <TableCell sx={{ py: 2 }}>{page * rowsPerPage + index + 1}</TableCell>
+                  <TableCell sx={{ py: 2 }}>
+                    {task.driver ? `${task.driver.first_name} ${task.driver.last_name}` : 'N/A'}
+                  </TableCell>
+                  <TableCell sx={{ py: 2 }}>
+                    {task.deliveryNo ? `${task.deliveryNo}` : task.procurement_id ? `${task.procurement_id}` : 'N/A'}
+                  </TableCell>
+                  <TableCell sx={{ py: 2 }}>{`${task.date} | ${task.timeSlot}`}</TableCell>
+                  <TableCell sx={{ py: 2 }}>
+                    <Chip
+                      label={task.status}
+                      size="small"
+                      sx={{
+                        bgcolor: task.status === 'Active' ? '#E6FFF2' :
+                          task.status === 'Completed' ? '#E6F7FF' :
+                            task.status === 'Cancelled' ? '#FFEBEE' : '#FFF7E6',
+                        color: task.status === 'Active' ? '#2CA66F' :
+                          task.status === 'Completed' ? '#1976D2' :
+                            task.status === 'Cancelled' ? '#F44336' : '#FF9800'
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ py: 2 }}>{task.charges || 'N/A'}</TableCell>
+                  <TableCell sx={{ py: 2 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleViewDetails(task)}
+                    >
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={taskList.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            borderTop: '1px solid #e0e0e0',
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }
+          }}
+        />
+      </>
     );
   };
 
@@ -537,17 +596,47 @@ const DriverTask = () => {
 
         {tabValue === 0 && <>
           <Typography variant="h6" sx={{ mt: 2 }}>Customer Deliveries</Typography>
-          {sortedCustomerTasks.length > 0 ? renderTaskTable(sortedCustomerTasks, setSortedCustomerTasks) : <Typography sx={{ mt: 2 }}>No customer deliveries found</Typography>}
+          {sortedCustomerTasks.length > 0 ? 
+            renderTaskTable(
+              sortedCustomerTasks, 
+              setSortedCustomerTasks, 
+              customerPage, 
+              customerRowsPerPage,
+              handleCustomerChangePage,
+              handleCustomerChangeRowsPerPage
+            ) : 
+            <Typography sx={{ mt: 2 }}>No customer deliveries found</Typography>
+          }
         </>}
 
         {tabValue === 1 && <>
           <Typography variant="h6" sx={{ mt: 2 }}>Vendor Deliveries</Typography>
-          {sortedVendorTasks.length > 0 ? renderTaskTable(sortedVendorTasks, setSortedVendorTasks) : <Typography sx={{ mt: 2 }}>No vendor deliveries found</Typography>}
+          {sortedVendorTasks.length > 0 ? 
+            renderTaskTable(
+              sortedVendorTasks, 
+              setSortedVendorTasks, 
+              vendorPage, 
+              vendorRowsPerPage,
+              handleVendorChangePage,
+              handleVendorChangeRowsPerPage
+            ) : 
+            <Typography sx={{ mt: 2 }}>No vendor deliveries found</Typography>
+          }
         </>}
 
         {tabValue === 2 && <>
           <Typography variant="h6" sx={{ mt: 2 }}>All Deliveries</Typography>
-          {tasks.length > 0 ? renderTaskTable(tasks, setTasks) : <Typography sx={{ mt: 2 }}>No deliveries found</Typography>}
+          {tasks.length > 0 ? 
+            renderTaskTable(
+              tasks, 
+              setTasks, 
+              allPage, 
+              allRowsPerPage,
+              handleAllChangePage,
+              handleAllChangeRowsPerPage
+            ) : 
+            <Typography sx={{ mt: 2 }}>No deliveries found</Typography>
+          }
         </>}
 
         {/* View Modal */}
@@ -600,9 +689,6 @@ const DriverTask = () => {
               <Typography>No task selected</Typography>
             )}
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseModal}>Close</Button>
-          </DialogActions>
         </Dialog>
 
       </Box>

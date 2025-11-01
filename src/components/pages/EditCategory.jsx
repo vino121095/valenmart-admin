@@ -382,7 +382,7 @@ const EditCategory = () => {
                 <ImagePreviewContainer>
                   <Box sx={{ textAlign: 'center' }}>
                     {!newImageFile && (
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0 }}>
                         Current image
                       </Typography>
                     )}

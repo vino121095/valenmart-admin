@@ -4,7 +4,7 @@ import {
   Stack, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, TextField, Typography, Select,
   FormControl, InputLabel, MenuItem as SelectItem, InputAdornment,
-  CircularProgress, Tab, Tabs, Breadcrumbs, Link
+  CircularProgress, Tab, Tabs, Breadcrumbs, Link, TablePagination
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -33,6 +33,10 @@ export default function InvoiceManagement() {
   const [endDate, setEndDate] = useState('');
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [orderDirection, setOrderDirection] = useState({});
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,6 +89,7 @@ export default function InvoiceManagement() {
     }
 
     setFilteredOrders(result);
+    setPage(0); // Reset to first page when filters change
   };
 
   const handleResetFilters = () => {
@@ -92,6 +97,7 @@ export default function InvoiceManagement() {
     setStartDate('');
     setEndDate('');
     setFilteredOrders(orders);
+    setPage(0); // Reset to first page when filters are reset
   };
 
   const calculateGrandTotal = (orderId) => {
@@ -186,6 +192,19 @@ export default function InvoiceManagement() {
       <ArrowUpwardIcon fontSize="small" /> :
       <ArrowDownwardIcon fontSize="small" />;
   };
+
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Calculate paginated data
+  const paginatedOrders = filteredOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   if (loading) {
     return (
@@ -385,7 +404,7 @@ export default function InvoiceManagement() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredOrders.map((order, index) => (
+            {paginatedOrders.map((order, index) => (
               <TableRow 
                 key={index}
                 sx={{
@@ -427,15 +446,23 @@ export default function InvoiceManagement() {
             ))}
           </TableBody>
         </Table>
-
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Typography variant="body2">Showing {filteredOrders.length} entries</Typography>
-          <Stack direction="row" spacing={1}>
-            <Button variant="outlined" size="small" disabled>Previous</Button>
-            <Button variant="contained" size="small" color="success">1</Button>
-            <Button variant="outlined" size="small" disabled>Next</Button>
-          </Stack>
-        </Box>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredOrders.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            borderTop: '1px solid #e0e0e0',
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }
+          }}
+        />
       </TableContainer>
     </Box>
   );

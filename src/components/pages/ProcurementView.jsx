@@ -15,7 +15,8 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  TablePagination
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -38,17 +39,17 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 const InfoRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   margin: theme.spacing(1, 0),
-  alignItems: 'center', // Ensure vertical alignment
+  alignItems: 'center',
   '& > :first-of-type': {
     fontWeight: 'bold',
     marginRight: theme.spacing(1),
-    minWidth: '180px', // Add a fixed width for labels to accommodate longer text
-    flexShrink: 0, // Prevent the label from shrinking
+    minWidth: '180px',
+    flexShrink: 0,
   },
   '& > :last-child': {
-    flex: 1, // Allow the value to take up remaining space
+    flex: 1,
     display: 'flex',
-    alignItems: 'center' // Ensure vertical alignment for values
+    alignItems: 'center'
   }
 }));
 
@@ -59,6 +60,10 @@ const ProcurementView = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     if (id) {
@@ -102,6 +107,16 @@ const ProcurementView = () => {
     navigate(-1);
   };
 
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   // Add parser for custom items string
   function parseItemsString(itemsString) {
     if (!itemsString) return [];
@@ -125,7 +140,11 @@ const ProcurementView = () => {
   let items = [];
   if (procurement && procurement.items) {
     if (typeof procurement.items === 'string' && procurement.items.trim().startsWith('[')) {
-      try { items = JSON.parse(procurement.items); } catch { items = []; }
+      try { 
+        items = JSON.parse(procurement.items); 
+      } catch { 
+        items = []; 
+      }
     } else if (typeof procurement.items === 'string') {
       items = parseItemsString(procurement.items);
     } else if (Array.isArray(procurement.items)) {
@@ -162,6 +181,10 @@ const ProcurementView = () => {
       </Container>
     );
   }
+
+  // Pagination logic
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - items.length) : 0;
+  const currentItems = items.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Box sx={{ pl: 0, width: '100%' }}>
@@ -210,7 +233,7 @@ const ProcurementView = () => {
             <Grid item xs={12} md={6}>
               <InfoRow>
                 <Typography>Order Date :</Typography>
-                <Typography>{procurement.order_date}</Typography>
+                <Typography sx={{ marginLeft: "10px" }}>{procurement.order_date}</Typography>
               </InfoRow>
               <InfoRow>
                 <Typography>Expected Delivery Date :</Typography>
@@ -218,18 +241,19 @@ const ProcurementView = () => {
               </InfoRow>
               <InfoRow>
                 <Typography>Status :</Typography>
-                <Grid item xs={6} display="flex" justifyContent="flex-start">
-                <Chip
-                  label={procurement.status}
-                  size="small"
-                  sx={{
-                    bgcolor: getStatusChipColor(procurement.status).bg,
-                    color: getStatusChipColor(procurement.status).color,
-                    borderRadius: '16px',
-                    fontWeight: "bold"
-                  }}
-                />
-                </Grid>
+                <Box>
+                  <Chip
+                    label={procurement.status}
+                    size="small"
+                    sx={{
+                      bgcolor: getStatusChipColor(procurement.status).bg,
+                      color: getStatusChipColor(procurement.status).color,
+                      borderRadius: '16px',
+                      fontWeight: "bold",
+                      marginLeft: "10px"
+                    }}
+                  />
+                </Box>
               </InfoRow>
             </Grid>
           </Grid>
@@ -295,7 +319,7 @@ const ProcurementView = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {items.map((item, index) => {
+                  {currentItems.map((item, index) => {
                     // If item has name, quantity, unit_price (from parsed string)
                     if (item.name && item.quantity && item.unit_price) {
                       return (
@@ -324,26 +348,43 @@ const ProcurementView = () => {
                       </TableRow>
                     );
                   })}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 53 * emptyRows }}>
+                      <TableCell colSpan={4} />
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={items.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </StyledPaper>
         </Box>
       )}
 
       <Box sx={{ mt: 3 }}>
-        <Button
-          variant="contained"
-          sx={{
-            mr: 2,
-            bgcolor: '#10B981',
-            '&:hover': { bgcolor: '#059669' },
-            fontWeight: 'bold'
-          }}
-          onClick={() => navigate(`/vendor-invoice-view/${procurement.procurement_id}`)}
-        >
-          View Invoice
-        </Button>
+        {/* Only show View Invoice button when status is "Received" */}
+        {procurement.status === 'Received' && (
+          <Button
+            variant="contained"
+            sx={{
+              mr: 2,
+              bgcolor: '#10B981',
+              '&:hover': { bgcolor: '#059669' },
+              fontWeight: 'bold'
+            }}
+            onClick={() => navigate(`/vendor-invoice-view/${procurement.procurement_id}`)}
+          >
+            View Invoice
+          </Button>
+        )}
         <Button
           variant="contained"
           sx={{

@@ -18,7 +18,8 @@ import {
   TableContainer,
   CircularProgress,
   Breadcrumbs,
-  Link
+  Link,
+  TablePagination
 } from '@mui/material';
 import { green, red, orange, blue } from '@mui/material/colors';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -34,6 +35,10 @@ export default function InvoiceManagementHistory() {
   const [loading, setLoading] = useState(true);
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [orderDirection, setOrderDirection] = useState({});
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     if (!orderId) {
@@ -191,6 +196,22 @@ export default function InvoiceManagementHistory() {
       <ArrowDownwardIcon fontSize="small" />;
   };
 
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Calculate paginated data
+  const paginatedPayments = paymentHistory.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <Box>
       <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
@@ -203,21 +224,17 @@ export default function InvoiceManagementHistory() {
         Payment History -  {orderDetails.CustomerProfile?.institution_name || 'Customer'}
       </Typography>
 
-      <Button variant="outlined" sx={{ mb: 3 }} onClick={() => navigate(-1)}>
-        &larr; Back
-      </Button>
-
       {/* Summary Cards */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Grid container spacing={2} sx={{ mt: 2, mb: 4 }}>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Typography variant="subtitle2">Invoice Amount</Typography>
-            <Typography variant="h6">₹{grandTotal.toFixed(2)}</Typography>
+            <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>₹{grandTotal.toFixed(2)}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="subtitle2">Payment Status</Typography>
+          <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Typography variant="subtitle2" sx={{marginTop: "-8px"}}>Payment Status</Typography>
             <Chip
               label={paymentStatus}
               sx={{
@@ -233,9 +250,9 @@ export default function InvoiceManagementHistory() {
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Typography variant="subtitle2">Balance Due</Typography>
-            <Typography variant="h6" sx={{ color: paymentStatus === 'Paid' ? green[600] : red[600] }}>
+            <Typography variant="h6" sx={{ mt: 1, mb: 1, color: paymentStatus === 'Paid' ? green[600] : red[600] }}>
               {paymentStatus === 'Paid' ? '₹0.00' : `₹${grandTotal.toFixed(2)}`}
             </Typography>
           </Paper>
@@ -243,10 +260,11 @@ export default function InvoiceManagementHistory() {
       </Grid>
 
       {/* Payment Timeline */}
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" fontWeight="bold" gutterBottom>
         Payment History Timeline
       </Typography>
-      <Stepper alternativeLabel activeStep={paymentStatus === 'Paid' ? 3 : paymentStatus === 'Pending' ? 2 : 1} sx={{ mb: 4 }}>
+      <Box marginLeft= "-120px" justifyContent="flex-start" marginTop= "30px" marginBottom="50px">
+      <Stepper alternativeLabel activeStep={paymentStatus === 'Paid' ? 3 : paymentStatus === 'Pending' ? 2 : 1} sx={{ mb: 4, textAlign: "left" }}>
         <Step>
           <StepLabel>Order Created</StepLabel>
         </Step>
@@ -260,14 +278,15 @@ export default function InvoiceManagementHistory() {
           <StepLabel>Order {orderDetails.status === 'Delivered' ? 'Delivered' : 'Delivery'}</StepLabel>
         </Step>
       </Stepper>
+      </Box>
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, height: '100%' }}>
             <Typography variant="subtitle2" fontWeight="bold">Invoice Created</Typography>
-            <Typography variant="body2">{orderDetails.order_date}</Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>{orderDetails.order_date}</Typography>
             <Typography variant="body2">Amount: ₹{grandTotal.toFixed(2)}</Typography>
-            <Typography variant="body2" sx={{ color: green[600] }}>
+            <Typography variant="body2" sx={{ color: green[600], mt: 1 }}>
               By: {orderDetails.CustomerProfile?.contact_person_name || 'Customer'}
             </Typography>
           </Paper>
@@ -275,13 +294,13 @@ export default function InvoiceManagementHistory() {
 
         {paymentHistory.length > 0 && (
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2 }}>
+            <Paper sx={{ p: 2, height: '100%' }}>
               <Typography variant="subtitle2" fontWeight="bold">
                 {paymentHistory[0].status === 'Completed' ? 'Payment Received' : 'Payment Initiated'}
               </Typography>
-              <Typography variant="body2">{paymentHistory[0].date}</Typography>
+              <Typography variant="body2" sx={{ mt: 1 }}>{paymentHistory[0].date}</Typography>
               <Typography variant="body2">Amount: ₹{paymentHistory[0].amount}</Typography>
-              <Typography variant="body2" sx={{ color: blue[600], textDecoration: 'underline', cursor: 'pointer' }}>
+              <Typography variant="body2" sx={{ color: blue[600], textDecoration: 'underline', cursor: 'pointer', mt: 1 }}>
                 Transaction ID: {paymentHistory[0].transactionId}
               </Typography>
             </Paper>
@@ -289,14 +308,15 @@ export default function InvoiceManagementHistory() {
         )}
 
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, height: '100%' }}>
             <Typography variant="subtitle2" fontWeight="bold">Current Status</Typography>
-            <Typography variant="body2">{orderDetails.status}</Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>{orderDetails.status}</Typography>
             <Typography variant="body2">
               Balance: {paymentStatus === 'Paid' ? '₹0.00' : `₹${grandTotal.toFixed(2)}`}
             </Typography>
             <Typography variant="body2" sx={{
-              color: paymentStatus === 'Paid' ? green[600] : red[600]
+              color: paymentStatus === 'Paid' ? green[600] : red[600],
+              mt: 1
             }}>
               {paymentStatus === 'Paid' ? 'Payment Complete' : 'Action Required'}
             </Typography>
@@ -305,7 +325,7 @@ export default function InvoiceManagementHistory() {
       </Grid>
 
       {/* Payment Details Table */}
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" fontWeight="bold" gutterBottom>
         Payment Details
       </Typography>
       <TableContainer component={Paper}>
@@ -360,8 +380,8 @@ export default function InvoiceManagementHistory() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {paymentHistory.length > 0 ? (
-              paymentHistory.map((payment, index) => (
+            {paginatedPayments.length > 0 ? (
+              paginatedPayments.map((payment, index) => (
                 <TableRow 
                   key={index}
                   sx={{
@@ -393,6 +413,23 @@ export default function InvoiceManagementHistory() {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={paymentHistory.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            borderTop: '1px solid #e0e0e0',
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }
+          }}
+        />
       </TableContainer>
     </Box>
   );

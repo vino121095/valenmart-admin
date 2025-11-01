@@ -15,6 +15,7 @@ import {
   Link,
   useTheme,
   IconButton,
+  TablePagination
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -31,6 +32,10 @@ export default function VendorPending({ reportMode = false }) {
   const theme = useTheme();
   const [vendors, setVendors] = useState([]);
   const [orderDirection, setOrderDirection] = useState({});
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     fetchVendors();
@@ -168,6 +173,19 @@ export default function VendorPending({ reportMode = false }) {
       <ArrowDownwardIcon fontSize="small" />;
   };
 
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Calculate paginated data
+  const paginatedVendors = vendors.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   const tableHeaders = [
     { id: 'type', label: 'Type', sortable: true },
     { id: 'name', label: 'Full Name / Company Name', sortable: true },
@@ -211,6 +229,8 @@ export default function VendorPending({ reportMode = false }) {
           </Typography>
         </Breadcrumbs>
       )}
+
+      <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>Vendor/Former Management</Typography>
 
       {!reportMode && (
         <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -291,7 +311,7 @@ export default function VendorPending({ reportMode = false }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {vendors.map((vendor) => (
+            {paginatedVendors.map((vendor) => (
               <TableRow 
                 key={vendor.vendor_id}
                 sx={{
@@ -331,6 +351,23 @@ export default function VendorPending({ reportMode = false }) {
             ))}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={vendors.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            borderTop: '1px solid #e0e0e0',
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }
+          }}
+        />
       </TableContainer>
     </Box>
   );

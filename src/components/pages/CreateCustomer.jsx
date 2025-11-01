@@ -137,7 +137,7 @@ export default function CustomerRegistrationForm() {
       </Breadcrumbs>
        <Typography variant="h5" fontWeight="bold" gutterBottom>Create New Customer</Typography>
 
-      <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+      <Paper elevation={3} sx={{ p: 3, maxWidth: "100%", mx: 'auto' }}>
         <form onSubmit={handleSubmit}>
           <Typography variant="h6" sx={{ color: '#00A67E', fontWeight: 'bold', mb: 2 }}>
             Institution Details
@@ -255,12 +255,12 @@ export default function CustomerRegistrationForm() {
             </Grid>
           </Grid>
 
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button type="submit" variant="contained" sx={{ bgcolor: '#00A67E', '&:hover': { bgcolor: '#007a5e' }, mr: 2 }}>
+              Create Customer
+            </Button>
             <Button variant="outlined" onClick={() => navigate('/customer')}>
               Cancel
-            </Button>
-            <Button type="submit" variant="contained" sx={{ bgcolor: '#00A67E', '&:hover': { bgcolor: '#007a5e' } }}>
-              Create Customer
             </Button>
           </Box>
         </form>

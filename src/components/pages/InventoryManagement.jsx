@@ -15,13 +15,22 @@ import {
   Link,
   Card,
   Chip,
-  CircularProgress
+  CircularProgress,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Tooltip,
+  TablePagination
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import baseurl from '../ApiService/ApiService';
 
 // Styled components
@@ -98,6 +107,15 @@ export default function InventoryDashboard() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderDirection, setOrderDirection] = useState({});
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  
+  // Inline editing state
+  const [editingProductId, setEditingProductId] = useState(null);
+  const [editingUnit, setEditingUnit] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -124,7 +142,13 @@ export default function InventoryDashboard() {
   }));
   const lowStockProductsCount = lowStockProductsList.length;
 
+  // Calculate paginated data
+  const paginatedProducts = products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   const handleSort = (column) => {
+    // Cancel any editing when sorting
+    cancelEditing();
+    
     const isAsc = orderDirection[column] === 'asc';
     setOrderDirection({
       ...orderDirection,
@@ -183,15 +207,176 @@ export default function InventoryDashboard() {
       <ArrowDownwardIcon fontSize="small" />;
   };
 
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    // Cancel any editing when changing page
+    cancelEditing();
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    // Cancel any editing when changing rows per page
+    cancelEditing();
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Inline edit handlers
+  const startEditing = (productId, currentUnit) => {
+    setEditingProductId(productId);
+    setEditingUnit(currentUnit);
+  };
+
+  const cancelEditing = () => {
+    setEditingProductId(null);
+    setEditingUnit('');
+  };
+
+  const handleUnitChange = (e) => {
+    // Only allow numbers
+    const value = e.target.value;
+    if (/^\d*$/.test(value) || value === '') {
+      setEditingUnit(value);
+    }
+  };
+
+  const saveUnit = async (productId) => {
+    // Validate unit
+    if (!editingUnit || isNaN(parseInt(editingUnit))) {
+      alert('Please enter a valid unit value');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Update product unit
+      const response = await fetch(`${baseurl}/api/product/update/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          unit: editingUnit, // Send raw number to API
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update product unit');
+      }
+
+      // Update both data states with new unit
+      const updateProduct = (products) => {
+        return products.map(product => {
+          if (product.pid === productId) {
+            return {
+              ...product,
+              unit: editingUnit,
+            };
+          }
+          return product;
+        });
+      };
+
+      setProducts(updateProduct(products));
+
+      // Show success feedback
+      alert('Product unit updated successfully!');
+    } catch (error) {
+      console.error('Error updating product unit:', error);
+      alert('Failed to update product unit. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+      cancelEditing();
+    }
+  };
+
+  const handleViewProduct = (id) => {
+    cancelEditing();
+    window.location.href = `/view-product/${id}`;
+  };
+
   const tableHeaders = [
+    { id: 'index', label: 'Product ID', sortable: false },
     { id: 'image', label: 'Image', sortable: false },
     { id: 'name', label: 'Product Name', sortable: true },
     { id: 'category', label: 'Category', sortable: true },
-    { id: 'unit', label: 'Unit', sortable: true },
-    { id: 'price', label: 'Price (₹)', sortable: true },
+    { id: 'unit', label: 'Weight (units)', sortable: true },
+    { id: 'price', label: 'Amount per kg (₹)', sortable: true },
     { id: 'status', label: 'Status', sortable: true },
     { id: 'actions', label: 'Actions', sortable: false },
   ];
+
+  // Render Unit Cell with Edit Functionality
+  const renderUnitCell = (product) => {
+    const isEditing = editingProductId === product.pid;
+
+    if (isEditing) {
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <TextField
+            size="small"
+            value={editingUnit}
+            onChange={handleUnitChange}
+            InputProps={{
+              sx: { width: '80px' }
+            }}
+            autoFocus
+            disabled={isSubmitting}
+          />
+          <Box sx={{ ml: 1 }}>
+            <IconButton
+              size="small"
+              color="primary"
+              onClick={() => saveUnit(product.pid)}
+              disabled={isSubmitting}
+            >
+              <SaveIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
+              color="error"
+              onClick={cancelEditing}
+              disabled={isSubmitting}
+            >
+              <CancelIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
+      );
+    }
+
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer',
+          '&:hover': {
+            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            borderRadius: '4px',
+            padding: '2px 4px'
+          }
+        }}
+        onClick={() => startEditing(product.pid, product.unit)}
+      >
+        <Tooltip title="Click to edit unit">
+          <Box>
+            {product.unit}
+            <EditIcon
+              fontSize="small"
+              sx={{
+                ml: 0.5,
+                color: 'action.active',
+                fontSize: '14px',
+                opacity: 0.5
+              }}
+            />
+          </Box>
+        </Tooltip>
+      </Box>
+    );
+  };
 
   return (
     <Box>
@@ -200,7 +385,7 @@ export default function InventoryDashboard() {
         <Typography color="#07100dff" sx={{ fontWeight: 'medium', fontSize: '0.9rem' }}>Inventory</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>Inventory Overview</Typography>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>Inventory Management</Typography>
 
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid item xs={12} md={4}>
@@ -209,9 +394,7 @@ export default function InventoryDashboard() {
               <Box>
                 <Typography variant="subtitle2" sx={{ color: '#333' }}>Total Products</Typography>
                 <StatsNumber>{totalProducts}</StatsNumber>
-                <Typography variant="caption" color="text.secondary">{availableProducts} Available</Typography>
               </Box>
-              <GreenCircle>{availableProducts}</GreenCircle>
             </Box>
           </StyledCard>
         </Grid>
@@ -222,11 +405,7 @@ export default function InventoryDashboard() {
               <Box>
                 <Typography variant="subtitle2" sx={{ color: '#333' }}>Available Products</Typography>
                 <StatsNumber>{availableProducts}</StatsNumber>
-                <Typography variant="caption" color="text.secondary">{totalProducts} Total</Typography>
               </Box>
-              <GrayCircle>
-                {((availableProducts / (totalProducts || 1)) * 100).toFixed(0)}%
-              </GrayCircle>
             </Box>
           </StyledCard>
         </Grid>
@@ -238,7 +417,7 @@ export default function InventoryDashboard() {
                 <Typography variant="subtitle2" sx={{ color: '#333' }}>Low Stock Alerts</Typography>
                 <StatsNumber sx={{ color: '#ff3333' }}>{lowStockProductsCount} Items</StatsNumber>
               </Box>
-              <RedCircle>
+              <RedCircle sx={{marginLeft: "10px"}}>
                 <ErrorOutlineIcon fontSize="small" />
               </RedCircle>
             </Box>
@@ -286,7 +465,7 @@ export default function InventoryDashboard() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {products.map(product => {
+                {paginatedProducts.map((product, index) => {
                   const isLowStock = parseInt(product.unit) <= 10;
                   return (
                     <TableRow
@@ -297,6 +476,9 @@ export default function InventoryDashboard() {
                         height: 80
                       }}
                     >
+                      <TableCell sx={{ py: 2, fontSize: '0.8rem' }}>
+                        {page * rowsPerPage + index + 1}
+                      </TableCell>
                       <TableCell sx={{ py: 2 }}>
                         <img
                           src={`${baseurl}/${product.product_image.replace(/\\/g, '/')}`}
@@ -306,7 +488,9 @@ export default function InventoryDashboard() {
                       </TableCell>
                       <TableCell sx={{ fontSize: '0.8rem'}}>{product.product_name}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem'}}>{product.category}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem'}}>{product.unit}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem'}}>
+                        {renderUnitCell(product)}
+                      </TableCell>
                       <TableCell sx={{ fontSize: '0.8rem'}}>{product.price}</TableCell>
                       <TableCell sx={{ py: 2 }}>
                         {product.is_active === 'Available' ? (
@@ -318,7 +502,8 @@ export default function InventoryDashboard() {
                       <TableCell sx={{ py: 2 }}>
                         <ActionButton
                           size="small"
-                          onClick={() => window.location.href = `/view-product/${product.pid}`}
+                          onClick={() => handleViewProduct(product.pid)}
+                          disabled={editingProductId === product.pid}
                         >
                           View
                         </ActionButton>
@@ -328,13 +513,30 @@ export default function InventoryDashboard() {
                 })}
                 {products.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">No products found.</TableCell>
+                    <TableCell colSpan={8} align="center">No products found.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </TableContainer>
         )}
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={products.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            borderTop: '1px solid #e0e0e0',
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }
+          }}
+        />
       </Paper>
     </Box>
   );

@@ -384,9 +384,12 @@ const AdminProcurement = ({
               size="small"
               color="inherit"
               variant="outlined"
-              startIcon={<ReceiptLong fontSize="small" />}
+              sx={{
+                fontSize: '0.75rem',
+                textTransform: 'none',
+                whiteSpace: 'nowrap'
+              }}
               onClick={() => handleView(orderId)}
-              sx={{ fontSize: "0.75rem", textTransform: "none" }}
             >
               View
             </Button>
@@ -396,11 +399,14 @@ const AdminProcurement = ({
         return (
           <Button
             size="small"
-            color="warning"
-            variant="contained"
-            startIcon={<ReceiptLong fontSize="small" />}
+            color="inherit"
+            variant="outlined"
+            sx={{
+              fontSize: '0.75rem',
+              textTransform: 'none',
+              whiteSpace: 'nowrap'
+            }}
             onClick={() => handleView(orderId)}
-            sx={{ fontSize: "0.75rem", textTransform: "none" }}
           >
             View
           </Button>
@@ -410,11 +416,14 @@ const AdminProcurement = ({
           <Stack direction="row" spacing={1}>
             <Button
               size="small"
-              color="warning"
-              variant="contained"
-              startIcon={<ReceiptLong fontSize="small" />}
-              onClick={() => handleReceive(orderId)}
-              sx={{ fontSize: "0.75rem", textTransform: "none" }}
+              color="inherit"
+              variant="outlined"
+              sx={{
+                fontSize: '0.75rem',
+                textTransform: 'none',
+                whiteSpace: 'nowrap'
+              }}
+              onClick={() => handleView(orderId)}
             >
               View
             </Button>
@@ -460,9 +469,13 @@ const AdminProcurement = ({
         return (
           <Button
             size="small"
-            color="info"
+            color="inherit"
             variant="outlined"
-            startIcon={<Pageview fontSize="small" />}
+            sx={{
+              fontSize: '0.75rem',
+              textTransform: 'none',
+              whiteSpace: 'nowrap'
+            }}
             onClick={() => handleView(orderId)}
           >
             View
@@ -494,7 +507,7 @@ const AdminProcurement = ({
 
   return (
     <Paper
-     sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}
+      sx={{ width: '100%', overflow: 'hidden', boxShadow: 'none', border: '1px solid #e0e0e0' }}
     >
       <TableContainer>
         <Table sx={{ minWidth: 700 }} aria-label="customer table">

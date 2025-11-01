@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Button, Grid, Paper, MenuItem, Select,
   Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Chip, TextField, Breadcrumbs, Link
+  TableRow, Chip, TextField, Breadcrumbs, Link, TablePagination
 } from '@mui/material';
 import { green, orange } from '@mui/material/colors';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -17,6 +17,10 @@ export default function CustomerManagementView3() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateRange, setDateRange] = useState('');
   const [filteredOrders, setFilteredOrders] = useState([]);
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     if (id) {
@@ -63,13 +67,31 @@ export default function CustomerManagementView3() {
     // (Optional) Date range filter logic can go here
 
     setFilteredOrders(result);
+    setPage(0); // Reset to first page when filters change
   };
 
   const resetFilters = () => {
     setStatusFilter('All');
     setDateRange('');
     setFilteredOrders(orders);
+    setPage(0); // Reset to first page when filters are reset
   };
+
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Calculate paginated data
+  const paginatedOrders = filteredOrders.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
     <Box>
@@ -79,14 +101,9 @@ export default function CustomerManagementView3() {
         <Typography color="text.primary">Customer Details</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
+      <Typography variant="h5" fontWeight="bold" gutterBottom  sx={{ mb: 3 }}>
         Customer Details - Tech University
       </Typography>
-
-      <Button variant="outlined" onClick={() => navigate('/customer')} sx={{ mb: 3 }}>
-        &larr; Back
-      </Button>
-
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
           <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
@@ -117,7 +134,7 @@ export default function CustomerManagementView3() {
       <Paper elevation={0} sx={{ p: 2, borderRadius: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={3}>
-            <Typography>Filter by Status :</Typography>
+            <Typography sx={{ mb: 2 }}>Filter by Status :</Typography>
             <Select
               fullWidth
               value={statusFilter}
@@ -131,7 +148,7 @@ export default function CustomerManagementView3() {
             </Select>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Typography>Date Range :</Typography>
+            <Typography sx={{ mb: 2 }}>Date Range :</Typography>
             <TextField
               fullWidth
               size="small"
@@ -144,12 +161,12 @@ export default function CustomerManagementView3() {
             />
           </Grid>
           <Grid item xs={6} md={2}>
-            <Button variant="contained" sx={{ mt: { xs: 2, md: 0 }, bgcolor: '#2CA66F' }} onClick={applyFilters}>
+            <Button variant="contained" sx={{ mt: { xs: 2, md: 5 }, bgcolor: '#2CA66F' }} onClick={applyFilters}>
               Apply
             </Button>
           </Grid>
           <Grid item xs={6} md={2}>
-            <Button variant="outlined" sx={{ mt: { xs: 2, md: 0 } }} onClick={resetFilters}>
+            <Button variant="outlined" sx={{ mt: { xs: 2, md: 5 } }} onClick={resetFilters}>
               Reset
             </Button>
           </Grid>
@@ -169,8 +186,8 @@ export default function CustomerManagementView3() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((order, index) => (
+            {paginatedOrders.length > 0 ? (
+              paginatedOrders.map((order, index) => (
                 <TableRow key={index}>
                   <TableCell>{order.order_id}</TableCell>
                   <TableCell>{new Date(order.order_date).toDateString()}</TableCell>
@@ -200,7 +217,6 @@ export default function CustomerManagementView3() {
                     >
                       View Details
                     </Button>
-
                   </TableCell>
                 </TableRow>
               ))
@@ -211,7 +227,31 @@ export default function CustomerManagementView3() {
             )}
           </TableBody>
         </Table>
+        
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredOrders.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            borderTop: '1px solid #e0e0e0',
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }
+          }}
+        />
       </TableContainer>
+      
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+        <Typography variant="body2" color="text.secondary">
+          Showing {paginatedOrders.length > 0 ? page * rowsPerPage + 1 : 0} to {Math.min((page + 1) * rowsPerPage, filteredOrders.length)} of {filteredOrders.length} entries
+        </Typography>
+      </Box>
     </Box>
   );
 }

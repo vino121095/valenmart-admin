@@ -3,7 +3,8 @@ import {
     Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Menu, MenuItem, Paper,
     Stack, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, TextField, Typography, Select,
-    FormControl, InputLabel, MenuItem as SelectItem, CircularProgress, Collapse, Alert, Breadcrumbs, Link
+    FormControl, InputLabel, MenuItem as SelectItem, CircularProgress, Collapse, Alert, Breadcrumbs, Link,
+    TablePagination
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -341,6 +342,12 @@ export default function DriverInvoice() {
     const [orderDirection, setOrderDirection] = useState({});
     const [sortedUnpaidData, setSortedUnpaidData] = useState([]);
     const [sortedPaidData, setSortedPaidData] = useState([]);
+    
+    // Pagination states
+    const [unpaidPage, setUnpaidPage] = useState(0);
+    const [unpaidRowsPerPage, setUnpaidRowsPerPage] = useState(10);
+    const [paidPage, setPaidPage] = useState(0);
+    const [paidRowsPerPage, setPaidRowsPerPage] = useState(10);
 
     const fetchData = async () => {
         setLoading(true);
@@ -398,6 +405,9 @@ export default function DriverInvoice() {
         }
 
         setFilteredDeliveries(result);
+        // Reset pagination when filters change
+        setUnpaidPage(0);
+        setPaidPage(0);
     };
 
     const handleResetFilters = () => {
@@ -407,6 +417,9 @@ export default function DriverInvoice() {
         setStartDate('');
         setEndDate('');
         setFilteredDeliveries(deliveries);
+        // Reset pagination when filters are reset
+        setUnpaidPage(0);
+        setPaidPage(0);
     };
 
     const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', {
@@ -507,6 +520,37 @@ export default function DriverInvoice() {
         setSortedPaidData(groupDeliveriesByDriver('Received'));
     }, [filteredDeliveries]);
 
+    // Pagination handlers for unpaid table
+    const handleUnpaidChangePage = (event, newPage) => {
+        setUnpaidPage(newPage);
+    };
+
+    const handleUnpaidChangeRowsPerPage = (event) => {
+        setUnpaidRowsPerPage(parseInt(event.target.value, 10));
+        setUnpaidPage(0);
+    };
+
+    // Pagination handlers for paid table
+    const handlePaidChangePage = (event, newPage) => {
+        setPaidPage(newPage);
+    };
+
+    const handlePaidChangeRowsPerPage = (event) => {
+        setPaidRowsPerPage(parseInt(event.target.value, 10));
+        setPaidPage(0);
+    };
+
+    // Calculate paginated data
+    const paginatedUnpaidData = sortedUnpaidData.slice(
+        unpaidPage * unpaidRowsPerPage,
+        unpaidPage * unpaidRowsPerPage + unpaidRowsPerPage
+    );
+    
+    const paginatedPaidData = sortedPaidData.slice(
+        paidPage * paidRowsPerPage,
+        paidPage * paidRowsPerPage + paidRowsPerPage
+    );
+
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -528,8 +572,8 @@ export default function DriverInvoice() {
         );
     }
 
-    const unpaidGroupedData = sortedUnpaidData.length > 0 ? sortedUnpaidData : groupDeliveriesByDriver('Receive');
-    const paidGroupedData = sortedPaidData.length > 0 ? sortedPaidData : groupDeliveriesByDriver('Received');
+    const unpaidGroupedData = paginatedUnpaidData.length > 0 ? paginatedUnpaidData : groupDeliveriesByDriver('Receive');
+    const paidGroupedData = paginatedPaidData.length > 0 ? paginatedPaidData : groupDeliveriesByDriver('Received');
     const allGroupedData = groupDeliveriesByDriver();
 
     const totalAllCharges = calculateTotalCharges(filteredDeliveries);
@@ -674,7 +718,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#fd7878ff',
                                     }
                                 }}
-                                onClick={() => handleSort('driverName', unpaidGroupedData, setSortedUnpaidData)}
+                                onClick={() => handleSort('driverName', sortedUnpaidData, setSortedUnpaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Driver Name
@@ -692,7 +736,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#fd7878ff',
                                     }
                                 }}
-                                onClick={() => handleSort('vehicleNumber', unpaidGroupedData, setSortedUnpaidData)}
+                                onClick={() => handleSort('vehicleNumber', sortedUnpaidData, setSortedUnpaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Vehicle Number
@@ -710,7 +754,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#fd7878ff',
                                     }
                                 }}
-                                onClick={() => handleSort('phone', unpaidGroupedData, setSortedUnpaidData)}
+                                onClick={() => handleSort('phone', sortedUnpaidData, setSortedUnpaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Phone
@@ -728,7 +772,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#fd7878ff',
                                     }
                                 }}
-                                onClick={() => handleSort('deliveries', unpaidGroupedData, setSortedUnpaidData)}
+                                onClick={() => handleSort('deliveries', sortedUnpaidData, setSortedUnpaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Deliveries
@@ -746,7 +790,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#fd7878ff',
                                     }
                                 }}
-                                onClick={() => handleSort('amount', unpaidGroupedData, setSortedUnpaidData)}
+                                onClick={() => handleSort('amount', sortedUnpaidData, setSortedUnpaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Amount
@@ -758,7 +802,7 @@ export default function DriverInvoice() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {unpaidGroupedData.map(({ driver, deliveries }) => (
+                        {paginatedUnpaidData.map(({ driver, deliveries }) => (
                             <DriverRow
                                 key={`unpaid-${driver.did}`}
                                 driver={driver}
@@ -769,7 +813,7 @@ export default function DriverInvoice() {
                                 paymentStatus="Receive"
                             />
                         ))}
-                        {unpaidGroupedData.length === 0 && (
+                        {paginatedUnpaidData.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={8} align="center">
                                     No unpaid deliveries found
@@ -778,6 +822,23 @@ export default function DriverInvoice() {
                         )}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={sortedUnpaidData.length}
+                    rowsPerPage={unpaidRowsPerPage}
+                    page={unpaidPage}
+                    onPageChange={handleUnpaidChangePage}
+                    onRowsPerPageChange={handleUnpaidChangeRowsPerPage}
+                    sx={{
+                        borderTop: '1px solid #e0e0e0',
+                        '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: '#666'
+                        }
+                    }}
+                />
             </TableContainer>
 
             {/* Paid Section */}
@@ -800,7 +861,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#009e64',
                                     }
                                 }}
-                                onClick={() => handleSort('driverName', paidGroupedData, setSortedPaidData)}
+                                onClick={() => handleSort('driverName', sortedPaidData, setSortedPaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Driver Name
@@ -818,7 +879,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#009e64',
                                     }
                                 }}
-                                onClick={() => handleSort('vehicleNumber', paidGroupedData, setSortedPaidData)}
+                                onClick={() => handleSort('vehicleNumber', sortedPaidData, setSortedPaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Vehicle Number
@@ -836,7 +897,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#009e64',
                                     }
                                 }}
-                                onClick={() => handleSort('phone', paidGroupedData, setSortedPaidData)}
+                                onClick={() => handleSort('phone', sortedPaidData, setSortedPaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Phone
@@ -854,7 +915,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#009e64',
                                     }
                                 }}
-                                onClick={() => handleSort('deliveries', paidGroupedData, setSortedPaidData)}
+                                onClick={() => handleSort('deliveries', sortedPaidData, setSortedPaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Deliveries
@@ -872,7 +933,7 @@ export default function DriverInvoice() {
                                         backgroundColor: '#009e64',
                                     }
                                 }}
-                                onClick={() => handleSort('amount', paidGroupedData, setSortedPaidData)}
+                                onClick={() => handleSort('amount', sortedPaidData, setSortedPaidData)}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     Amount
@@ -888,14 +949,14 @@ export default function DriverInvoice() {
                                 py: 2,
                                 '&:hover': {
                                     backgroundColor: '#009e64',
-                                }
+                                    }
                             }}>
                                 Status
                             </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {paidGroupedData.map(({ driver, deliveries }) => (
+                        {paginatedPaidData.map(({ driver, deliveries }) => (
                             <DriverRow
                                 key={`paid-${driver.did}`}
                                 driver={driver}
@@ -906,7 +967,7 @@ export default function DriverInvoice() {
                                 paymentStatus="Received"
                             />
                         ))}
-                        {paidGroupedData.length === 0 && (
+                        {paginatedPaidData.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={8} align="center">
                                     No paid deliveries found
@@ -915,6 +976,23 @@ export default function DriverInvoice() {
                         )}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={sortedPaidData.length}
+                    rowsPerPage={paidRowsPerPage}
+                    page={paidPage}
+                    onPageChange={handlePaidChangePage}
+                    onRowsPerPageChange={handlePaidChangeRowsPerPage}
+                    sx={{
+                        borderTop: '1px solid #e0e0e0',
+                        '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: '#666'
+                        }
+                    }}
+                />
             </TableContainer>
         </Box>
     );

@@ -4,7 +4,8 @@ import {
   TableBody, TableCell, TableContainer, TableHead,
   TableRow, Paper, Pagination, FormControl, InputLabel,
   Card, CardContent, Grid, Stack, TextField,
-  Dialog, DialogTitle, DialogContent, DialogActions, Breadcrumbs, Link
+  Dialog, DialogTitle, DialogContent, DialogActions, Breadcrumbs, Link,
+  TablePagination
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -28,6 +29,10 @@ export default function DriverLog() {
   const [selectedLog, setSelectedLog] = useState(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [orderDirection, setOrderDirection] = useState({});
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     const fetchDriverLogs = async () => {
@@ -58,6 +63,7 @@ export default function DriverLog() {
     setStatusFilter('All');
     setNameFilter('');
     setDateFilter('');
+    setPage(0); // Reset to first page when filters are reset
   };
 
   const exportCSV = () => {
@@ -114,6 +120,9 @@ export default function DriverLog() {
 
     return matchesStatus && matchesName && matchesDate;
   });
+
+  // Calculate paginated data
+  const paginatedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleSort = (column) => {
     const isAsc = orderDirection[column] === 'asc';
@@ -182,6 +191,21 @@ export default function DriverLog() {
       <ArrowUpwardIcon fontSize="small" /> :
       <ArrowDownwardIcon fontSize="small" />;
   };
+
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter, nameFilter, dateFilter]);
 
   return (
     <Box>
@@ -370,7 +394,7 @@ export default function DriverLog() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredData.map((log, index) => {
+            {paginatedData.map((log, index) => {
               const driverName = log.driver
                 ? `${log.driver.first_name} ${log.driver.last_name}`
                 : 'Unknown';
@@ -439,12 +463,24 @@ export default function DriverLog() {
             })}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredData.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            borderTop: '1px solid #e0e0e0',
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }
+          }}
+        />
       </TableContainer>
-
-      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-        <Typography variant="body2">Showing {filteredData.length} of {driverData.length} Entries</Typography>
-        <Pagination count={1} page={1} variant="outlined" shape="rounded" />
-      </Box>
 
       {/* DETAILS DIALOG */}
       <Dialog open={detailsDialogOpen} onClose={() => setDetailsDialogOpen(false)} maxWidth="sm" fullWidth>

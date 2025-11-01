@@ -213,12 +213,12 @@ export default function CustomerEditAccount() {
             </Grid>
 
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 2 }}>
-                <Button variant="outlined" color="error" startIcon={<CancelIcon />} onClick={handleCancel}>
-                  Cancel
+              <Box sx={{ mt: 2, justifyContent: 'flex-end' }}>
+                <Button type="submit" variant="contained" sx={{ bgcolor: '#00A67E', '&:hover': { bgcolor: '#007a5e' }, mr: 2 }}>
+                  Edid Customer
                 </Button>
-                <Button type="submit" variant="contained" color="success" startIcon={<SaveIcon />}>
-                  Save Changes
+                <Button variant="outlined" onClick={() => navigate('/customer')}>
+                  Cancel
                 </Button>
               </Box>
             </Grid>

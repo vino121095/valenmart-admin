@@ -16,7 +16,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Avatar
+  Avatar,
+  TablePagination
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -39,17 +40,17 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 const InfoRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   margin: theme.spacing(1, 0),
-  alignItems: 'center', // Ensure vertical alignment
+  alignItems: 'center',
   '& > :first-of-type': {
     fontWeight: 'bold',
     marginRight: theme.spacing(1),
-    minWidth: '150px', // Increased width to accommodate longer labels
-    flexShrink: 0, // Prevent the label from shrinking
+    minWidth: '150px',
+    flexShrink: 0,
   },
   '& > :last-child': {
-    flex: 1, // Allow the value to take up remaining space
+    flex: 1,
     display: 'flex',
-    alignItems: 'center' // Ensure vertical alignment for values
+    alignItems: 'center'
   }
 }));
 
@@ -60,6 +61,10 @@ const OrderView = () => {
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     // Get the order ID from location state or URL params
@@ -153,6 +158,17 @@ const OrderView = () => {
   const handleBack = () => {
     navigate(-1);
   };
+
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   if (loading) {
     return (
       <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -184,6 +200,10 @@ const OrderView = () => {
   }
 
   const itemsForOrder = orderItems.filter(item => item.order_id === parseInt(orderData.id || orderData.oid));
+
+  // Pagination logic
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - itemsForOrder.length) : 0;
+  const currentItems = itemsForOrder.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Box sx={{ pl: 0, width: '100%' }}>
@@ -232,7 +252,7 @@ const OrderView = () => {
               </InfoRow>
               <InfoRow>
                 <Typography>Status :</Typography>
-                <Grid item xs={6} display="flex" justifyContent="flex-start">
+                <Box>
                   <Chip
                     label={orderData.status}
                     size="small"
@@ -243,8 +263,7 @@ const OrderView = () => {
                       fontWeight: "bold",
                     }}
                   />
-                </Grid>
-
+                </Box>
               </InfoRow>
             </Grid>
           </Grid>
@@ -305,7 +324,6 @@ const OrderView = () => {
               </InfoRow>
             )}
           </StyledPaper>
-
         </Grid>
       </Grid>
 
@@ -327,7 +345,7 @@ const OrderView = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {itemsForOrder.map((item, index) => (
+                  {currentItems.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell>
                         <Typography>{item.Product?.product_name || 'Unknown Product'}</Typography>
@@ -338,26 +356,43 @@ const OrderView = () => {
                       <TableCell>₹{item.line_total}</TableCell>
                     </TableRow>
                   ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 53 * emptyRows }}>
+                      <TableCell colSpan={4} />
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={itemsForOrder.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </StyledPaper>
         </Box>
       )}
 
       <Box sx={{ mt: 3 }}>
-        <Button
-          variant="contained"
-          sx={{
-            mr: 2,
-            bgcolor: '#10B981',
-            '&:hover': { bgcolor: '#059669' },
-            fontWeight: 'bold'
-          }}
-          onClick={handleNavigateToInvoiceView}
-        >
-          View Invoice
-        </Button>
+        {/* Only show View Invoice button when status is "Delivered" */}
+        {orderData.status === 'Delivered' && (
+          <Button
+            variant="contained"
+            sx={{
+              mr: 2,
+              bgcolor: '#10B981',
+              '&:hover': { bgcolor: '#059669' },
+              fontWeight: 'bold'
+            }}
+            onClick={handleNavigateToInvoiceView}
+          >
+            View Invoice
+          </Button>
+        )}
         <Button
           variant="contained"
           sx={{

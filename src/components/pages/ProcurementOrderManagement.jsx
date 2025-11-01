@@ -333,11 +333,14 @@ const ProcurementOrderManagement = ({ reportMode = false }) => {
             </Button>
             <Button
               size="small"
-              color="info"
+              color="inherit"
               variant="outlined"
-              startIcon={<Pageview fontSize="small" />}
+              sx={{
+                    fontSize: '0.75rem',
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap'
+                  }}
               onClick={() => handleView(orderId)}
-              sx={{ fontSize: "0.75rem", textTransform: "none" }}
             >
               View
             </Button>
@@ -361,11 +364,14 @@ const ProcurementOrderManagement = ({ reportMode = false }) => {
           return (
             <Button
               size="small"
-              color="info"
+              color="inherit"
               variant="outlined"
-              startIcon={<Pageview fontSize="small" />}
+              sx={{
+                    fontSize: '0.75rem',
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap'
+                  }}
               onClick={() => handleView(orderId)}
-              sx={{ fontSize: "0.75rem", textTransform: "none" }}
             >
               View
             </Button>
@@ -388,9 +394,12 @@ const ProcurementOrderManagement = ({ reportMode = false }) => {
               size="small"
               color="inherit"
               variant="outlined"
-              startIcon={<ReceiptLong fontSize="small" />}
+              sx={{
+                    fontSize: '0.75rem',
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap'
+                  }}
               onClick={() => handleView(orderId)}
-              sx={{ fontSize: "0.75rem", textTransform: "none" }}
             >
               View
             </Button>
@@ -399,15 +408,18 @@ const ProcurementOrderManagement = ({ reportMode = false }) => {
       case "Approved":
         return (
           <Button
-            size="small"
-            color="warning"
-            variant="contained"
-            startIcon={<ReceiptLong fontSize="small" />}
-            onClick={() => handleView(orderId)}
-            sx={{ fontSize: "0.75rem", textTransform: "none" }}
-          >
-            View
-          </Button>
+              size="small"
+              color="inherit"
+              variant="outlined"
+              sx={{
+                    fontSize: '0.75rem',
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap'
+                  }}
+              onClick={() => handleView(orderId)}
+            >
+              View
+            </Button>
         );
       case "Picked":
         return (
@@ -463,15 +475,18 @@ const ProcurementOrderManagement = ({ reportMode = false }) => {
       case "Rejected":
         return (
           <Button
-            size="small"
-            color="info"
-            variant="outlined"
-            startIcon={<Pageview fontSize="small" />}
-            onClick={() => handleView(orderId)}
-            sx={{ fontSize: "0.75rem", textTransform: "none" }}
-          >
-            View
-          </Button>
+              size="small"
+              color="inherit"
+              variant="outlined"
+              sx={{
+                    fontSize: '0.75rem',
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap'
+                  }}
+              onClick={() => handleView(orderId)}
+            >
+              View
+            </Button>
         );
       default:
         return null;

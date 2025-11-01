@@ -154,7 +154,7 @@ export default function VendorRegistrationForm() {
       </Breadcrumbs>
        <Typography variant="h5" fontWeight="bold" gutterBottom>Add New Vendor/Farmer</Typography>
 
-      <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+      <Paper elevation={3} sx={{ p: 3, maxWidth: "100%", mx: 'auto' }}>
         <form onSubmit={handleSubmit}>
           <Typography variant="subtitle1" gutterBottom sx={{ color: '#00A67E', fontWeight: 'bold', mb: 2 }}>
             Basic Information
@@ -383,10 +383,7 @@ export default function VendorRegistrationForm() {
             </Grid>
           </Grid>
 
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
-            <Button variant="outlined" onClick={() => navigate('/vendors')}>
-              Cancel
-            </Button>
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               type="submit"
               variant="contained"
@@ -394,11 +391,15 @@ export default function VendorRegistrationForm() {
                 bgcolor: '#00A67E',
                 '&:hover': {
                   bgcolor: '#007a5e'
-                }
+                },
+                marginRight: 2
               }}
             >
               Create Account
             </Button>
+            <Button variant="outlined" onClick={() => navigate('/vendors')}>
+              Cancel
+            </Button> 
           </Box>
         </form>
       </Paper>

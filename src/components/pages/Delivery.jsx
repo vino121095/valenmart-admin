@@ -27,14 +27,20 @@ import {
   FormControl,
   InputLabel,
   Breadcrumbs,
-  Link
+  Link,
+  CircularProgress,
+  Alert,
+  Card,
+  CardMedia,
+  TablePagination,
+  Pagination
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { useNavigate } from 'react-router-dom';
-import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useNavigate } from 'react-router-dom';
 import baseurl from '../ApiService/ApiService';
 
 const statusColors = {
@@ -50,7 +56,6 @@ const statusOptions = ['Available', 'Break', 'Idle', 'Offline'];
 export default function DeliveryManagement() {
   const navigate = useNavigate();
   const [drivers, setDrivers] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, total: 0 });
   const [summary, setSummary] = useState({
     activeDrivers: 0,
     tasksInProgress: 0,
@@ -65,6 +70,20 @@ export default function DeliveryManagement() {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editFormData, setEditFormData] = useState({});
   const [orderDirection, setOrderDirection] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState(null);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [previewIdProof, setPreviewIdProof] = useState(null);
+  
+  // Pagination states for both tables
+  const [accountsPage, setAccountsPage] = useState(0);
+  const [accountsRowsPerPage, setAccountsRowsPerPage] = useState(10);
+  const [managementPage, setManagementPage] = useState(0);
+  const [managementRowsPerPage, setManagementRowsPerPage] = useState(10);
+  // Pagination state for completed deliveries
+  const [completedPage, setCompletedPage] = useState(0);
+  const [completedRowsPerPage, setCompletedRowsPerPage] = useState(5);
 
   useEffect(() => {
     fetch(baseurl + '/api/driver-details/all')
@@ -79,17 +98,12 @@ export default function DeliveryManagement() {
           ...prev,
           activeDrivers,
         }));
-
-        setPagination(prev => ({
-          ...prev,
-          total: Math.ceil(driverData.length / 5),
-        }));
       })
       .catch((error) => {
         console.error('Error fetching driver data:', error);
         setDrivers([]);
       });
-  }, [pagination.page]);
+  }, []);
 
   useEffect(() => {
     fetch(baseurl + '/api/delivery/all')
@@ -117,20 +131,20 @@ export default function DeliveryManagement() {
       });
   }, []);
 
-  const handlePaginationChange = (event, value) => {
-    setPagination(prev => ({ ...prev, page: value }));
-  };
-
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
   const handleDateFilterChange = (event) => {
     setDateFilter(event.target.value);
+    // Reset pagination when filter changes
+    setCompletedPage(0);
   };
 
   const handleViewDriver = (driver) => {
     setSelectedDriver(driver);
+    setPreviewImage(`${baseurl}/${driver.driver_image}`);
+    setPreviewIdProof(`${baseurl}/${driver.id_proof}`);
     setOpenViewDialog(true);
   };
 
@@ -146,8 +160,14 @@ export default function DeliveryManagement() {
       vehicle_number: driver.vehicle_number,
       status: driver.status,
       license_number: driver.license_number,
-      license_expiry_date: driver.license_expiry_date.split('T')[0]
+      license_expiry_date: driver.license_expiry_date.split('T')[0],
+      date_of_birth: driver.date_of_birth.split('T')[0],
+      state: driver.state,
+      country: driver.country,
+      vehicle: driver.vehicle
     });
+    setPreviewImage(`${baseurl}/${driver.driver_image}`);
+    setPreviewIdProof(`${baseurl}/${driver.id_proof}`);
     setOpenEditDialog(true);
   };
 
@@ -159,14 +179,86 @@ export default function DeliveryManagement() {
     }));
   };
 
-  const handleUpdateDriver = () => {
-    // Here you would typically make an API call to update the driver
-    // console.log('Updating driver:', selectedDriver.did, editFormData);
-    // For demo purposes, we'll just update the local state
-    setDrivers(prev => prev.map(driver =>
-      driver.did === selectedDriver.did ? { ...driver, ...editFormData } : driver
-    ));
-    setOpenEditDialog(false);
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPreviewImage(URL.createObjectURL(file));
+      setEditFormData(prev => ({
+        ...prev,
+        driver_image: file
+      }));
+    }
+  };
+
+  const handleIdProofChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPreviewIdProof(URL.createObjectURL(file));
+      setEditFormData(prev => ({
+        ...prev,
+        id_proof: file
+      }));
+    }
+  };
+
+  const handleUpdateDriver = async () => {
+    if (!selectedDriver) return;
+    
+    setIsUpdating(true);
+    setUpdateError(null);
+    setUpdateSuccess(false);
+    
+    try {
+      const formData = new FormData();
+      
+      // Add all form fields
+      Object.keys(editFormData).forEach(key => {
+        if (key !== 'driver_image' && key !== 'id_proof') {
+          formData.append(key, editFormData[key]);
+        }
+      });
+      
+      // Add files if they exist
+      if (editFormData.driver_image instanceof File) {
+        formData.append('driver_image', editFormData.driver_image);
+      }
+      
+      if (editFormData.id_proof instanceof File) {
+        formData.append('id_proof', editFormData.id_proof);
+      }
+      
+      const response = await fetch(`${baseurl}/api/driver-details/update/${selectedDriver.did}`, {
+        method: 'PUT',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update driver');
+      }
+
+      const data = await response.json();
+      
+      // Update the driver in the local state
+      setDrivers(prev => prev.map(driver =>
+        driver.did === selectedDriver.did ? { ...driver, ...editFormData } : driver
+      ));
+      
+      // Update selected driver as well
+      setSelectedDriver(prev => ({ ...prev, ...editFormData }));
+      
+      setUpdateSuccess(true);
+      
+      // Close the edit dialog after a short delay
+      setTimeout(() => {
+        setOpenEditDialog(false);
+        setUpdateSuccess(false);
+      }, 1500);
+    } catch (error) {
+      console.error('Error updating driver:', error);
+      setUpdateError(error.message || 'Failed to update driver');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const filteredCompletedDeliveries = () => {
@@ -222,33 +314,16 @@ export default function DeliveryManagement() {
   };
 
   const dateGroups = groupDeliveriesByDate();
-  const start = (pagination.page - 1) * 5;
-  const end = pagination.page * 5;
+  const dateKeys = Object.keys(dateGroups);
+  const paginatedDateKeys = dateKeys.slice(
+    completedPage * completedRowsPerPage,
+    completedPage * completedRowsPerPage + completedRowsPerPage
+  );
 
   const handleDownloadIdProof = (filePath) => {
-  const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
-  const fullUrl = filePath.startsWith('http') ? filePath : `${baseUrl}/${filePath}`;
-  
-  // Method 1: Simple anchor tag download (works for same-origin files)
-  const link = document.createElement('a');
-  link.href = fullUrl;
-  link.setAttribute('download', 'id_proof.pdf'); // Force download
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  // Method 2: For external/CORS issues, fetch and download (requires backend support)
-  // fetch(fullUrl, { headers: { Authorization: `Bearer ${token}` } })
-  //   .then(res => res.blob())
-  //   .then(blob => {
-  //     const url = window.URL.createObjectURL(blob);
-  //     const a = document.createElement('a');
-  //     a.href = url;
-  //     a.download = 'id_proof.pdf';
-  //     a.click();
-  //     window.URL.revokeObjectURL(url);
-  //   });
-};
+    const fullUrl = filePath.startsWith('http') ? filePath : `${baseurl}/${filePath}`;
+    window.open(fullUrl, '_blank');
+  };
 
   const handleSort = (column) => {
     const isAsc = orderDirection[column] === 'asc';
@@ -259,8 +334,8 @@ export default function DeliveryManagement() {
 
     const sortedDrivers = [...drivers].sort((a, b) => {
       let aValue, bValue;
-      
-      switch(column) {
+
+      switch (column) {
         case 'name':
           aValue = `${a.first_name} ${a.last_name}`;
           bValue = `${b.first_name} ${b.last_name}`;
@@ -285,7 +360,7 @@ export default function DeliveryManagement() {
           aValue = a[column];
           bValue = b[column];
       }
-      
+
       if (isNaN(aValue) || isNaN(bValue)) {
         if (isAsc) {
           return String(aValue).localeCompare(String(bValue));
@@ -293,10 +368,10 @@ export default function DeliveryManagement() {
           return String(bValue).localeCompare(String(aValue));
         }
       }
-      
+
       return isAsc ? aValue - bValue : bValue - aValue;
     });
-    
+
     setDrivers(sortedDrivers);
   };
 
@@ -305,6 +380,36 @@ export default function DeliveryManagement() {
     return orderDirection[column] === 'asc' ?
       <ArrowUpwardIcon fontSize="small" /> :
       <ArrowDownwardIcon fontSize="small" />;
+  };
+
+  // Pagination handlers for Driver Accounts table
+  const handleAccountsChangePage = (event, newPage) => {
+    setAccountsPage(newPage);
+  };
+
+  const handleAccountsChangeRowsPerPage = (event) => {
+    setAccountsRowsPerPage(parseInt(event.target.value, 10));
+    setAccountsPage(0);
+  };
+
+  // Pagination handlers for Driver Management table
+  const handleManagementChangePage = (event, newPage) => {
+    setManagementPage(newPage);
+  };
+
+  const handleManagementChangeRowsPerPage = (event) => {
+    setManagementRowsPerPage(parseInt(event.target.value, 10));
+    setManagementPage(0);
+  };
+
+  // Pagination handlers for Completed Deliveries
+  const handleCompletedChangePage = (event, newPage) => {
+    setCompletedPage(newPage);
+  };
+
+  const handleCompletedChangeRowsPerPage = (event) => {
+    setCompletedRowsPerPage(parseInt(event.target.value, 10));
+    setCompletedPage(0);
   };
 
   return (
@@ -381,7 +486,7 @@ export default function DeliveryManagement() {
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#00B074', height: 60 }}>
-                <TableCell 
+                <TableCell
                   sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
                   onClick={() => handleSort('name')}
                 >
@@ -390,7 +495,7 @@ export default function DeliveryManagement() {
                     <Box sx={{ ml: 0.5 }}>{getSortIcon('name')}</Box>
                   </Box>
                 </TableCell>
-                <TableCell 
+                <TableCell
                   sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
                   onClick={() => handleSort('status')}
                 >
@@ -405,7 +510,9 @@ export default function DeliveryManagement() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {drivers.slice(start, end).map((driver, index) => {
+              {drivers
+                .slice(managementPage * managementRowsPerPage, managementPage * managementRowsPerPage + managementRowsPerPage)
+                .map((driver, index) => {
                 const driverDeliveries = deliveries.filter(
                   delivery => delivery.driver?.did === driver.did
                 );
@@ -414,7 +521,7 @@ export default function DeliveryManagement() {
                 ).length;
 
                 return (
-                  <TableRow 
+                  <TableRow
                     key={index}
                     sx={{
                       '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
@@ -447,35 +554,31 @@ export default function DeliveryManagement() {
               })}
             </TableBody>
           </Table>
-
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography variant="body2">
-              Showing {start + 1} to {Math.min(end, drivers.length)} of {drivers.length} Entries
-            </Typography>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Button variant="outlined" size="small" onClick={(e) => handlePaginationChange(e, pagination.page - 1)} disabled={pagination.page <= 1}>Previous</Button>
-              {[...Array(pagination.total)].map((_, index) => (
-                <Button
-                  key={index}
-                  variant={pagination.page === index + 1 ? 'contained' : 'outlined'}
-                  size="small"
-                  color={pagination.page === index + 1 ? 'success' : 'inherit'}
-                  onClick={(e) => handlePaginationChange(e, index + 1)}
-                >
-                  {index + 1}
-                </Button>
-              ))}
-              <Button variant="outlined" size="small" onClick={(e) => handlePaginationChange(e, pagination.page + 1)} disabled={pagination.page >= pagination.total}>Next</Button>
-            </Stack>
-          </Box>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={drivers.length}
+            rowsPerPage={managementRowsPerPage}
+            page={managementPage}
+            onPageChange={handleManagementChangePage}
+            onRowsPerPageChange={handleManagementChangeRowsPerPage}
+            sx={{
+              borderTop: '1px solid #e0e0e0',
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                fontSize: '14px',
+                fontWeight: 400,
+                color: '#666'
+              }
+            }}
+          />
         </TableContainer>
       ) : tabValue === 0 ? (
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#00B074', height: 60 }}>
-                <TableCell 
-                  sx={{ 
+                <TableCell
+                  sx={{
                     backgroundColor: '#00B074',
                     cursor: 'pointer',
                     color: '#fff',
@@ -492,7 +595,7 @@ export default function DeliveryManagement() {
                     <Box sx={{ ml: 0.5 }}>{getSortIcon('name')}</Box>
                   </Box>
                 </TableCell>
-                <TableCell 
+                <TableCell
                   sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
                   onClick={() => handleSort('contact')}
                 >
@@ -501,7 +604,7 @@ export default function DeliveryManagement() {
                     <Box sx={{ ml: 0.5 }}>{getSortIcon('contact')}</Box>
                   </Box>
                 </TableCell>
-                <TableCell 
+                <TableCell
                   sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
                   onClick={() => handleSort('vehicle')}
                 >
@@ -510,7 +613,7 @@ export default function DeliveryManagement() {
                     <Box sx={{ ml: 0.5 }}>{getSortIcon('vehicle')}</Box>
                   </Box>
                 </TableCell>
-                <TableCell 
+                <TableCell
                   sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
                   onClick={() => handleSort('status')}
                 >
@@ -519,7 +622,7 @@ export default function DeliveryManagement() {
                     <Box sx={{ ml: 0.5 }}>{getSortIcon('status')}</Box>
                   </Box>
                 </TableCell>
-                <TableCell 
+                <TableCell
                   sx={{ color: 'white', fontWeight: 'bold', cursor: 'pointer', py: 2 }}
                   onClick={() => handleSort('license')}
                 >
@@ -532,8 +635,10 @@ export default function DeliveryManagement() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {drivers.map((driver, index) => (
-                <TableRow 
+              {drivers
+                .slice(accountsPage * accountsRowsPerPage, accountsPage * accountsRowsPerPage + accountsRowsPerPage)
+                .map((driver, index) => (
+                <TableRow
                   key={index}
                   sx={{
                     '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
@@ -543,9 +648,11 @@ export default function DeliveryManagement() {
                   <TableCell sx={{ py: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Avatar
-                        src={`http://localhost:8000/${driver.driver_image}`}
+                        src={`${baseurl}/${driver.driver_image}`}
                         sx={{ width: 50, height: 50, mr: 2 }}
-                      />
+                      >
+                        {driver.first_name.charAt(0)}
+                      </Avatar>
                       <Box>
                         <Typography variant="body1">{`${driver.first_name} ${driver.last_name}`}</Typography>
                         <Typography variant="body2" color="text.secondary">{driver.email}</Typography>
@@ -577,56 +684,78 @@ export default function DeliveryManagement() {
                     <IconButton onClick={() => handleViewDriver(driver)} color="primary">
                       <VisibilityIcon />
                     </IconButton>
-                    {/* <IconButton onClick={() => handleEditDriver(driver)} color="secondary">
+                    <IconButton onClick={() => handleEditDriver(driver)} color="secondary">
                       <EditIcon />
-                    </IconButton> */}
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={drivers.length}
+            rowsPerPage={accountsRowsPerPage}
+            page={accountsPage}
+            onPageChange={handleAccountsChangePage}
+            onRowsPerPageChange={handleAccountsChangeRowsPerPage}
+            sx={{
+              borderTop: '1px solid #e0e0e0',
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                fontSize: '14px',
+                fontWeight: 400,
+                color: '#666'
+              }
+            }}
+          />
         </TableContainer>
       ) : (
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, gap: 2 }}>
-            <select
-              value={dateFilter}
-              onChange={handleDateFilterChange}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                backgroundColor: 'white'
-              }}
-            >
-              <option value="all">All Dates</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-            </select>
-            <Button
-              variant="outlined"
-              onClick={() => setDateFilter('all')}
-              size="small"
-            >
-              Clear Filters
-            </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <select
+                value={dateFilter}
+                onChange={handleDateFilterChange}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  backgroundColor: 'white'
+                }}
+              >
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+              </select>
+              <Button
+                variant="outlined"
+                onClick={() => setDateFilter('all')}
+                size="small"
+              >
+                Clear Filters
+              </Button>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              Showing {paginatedDateKeys.length > 0 ? (completedPage * completedRowsPerPage) + 1 : 0} to {Math.min((completedPage * completedRowsPerPage) + completedRowsPerPage, dateKeys.length)} of {dateKeys.length} dates
+            </Typography>
           </Box>
 
-          {Object.keys(dateGroups).length === 0 ? (
+          {paginatedDateKeys.length === 0 ? (
             <Typography variant="body1" sx={{ p: 2 }}>No completed deliveries found</Typography>
           ) : (
-            Object.entries(dateGroups).map(([date, deliveries]) => (
+            paginatedDateKeys.map(date => (
               <Box key={date} sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ mb: 1, color: '#00A67E' }}>
                   {new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   <Typography component="span" sx={{ ml: 2, fontSize: '0.9rem', color: 'text.secondary' }}>
-                    {deliveries.length} {deliveries.length === 1 ? 'delivery' : 'deliveries'}
+                    {dateGroups[date].length} {dateGroups[date].length === 1 ? 'delivery' : 'deliveries'}
                   </Typography>
                 </Typography>
 
                 {/* Group deliveries by driver */}
-                {Object.entries(groupByDriver(deliveries)).map(([driverId, driverDeliveries]) => {
+                {Object.entries(groupByDriver(dateGroups[date])).map(([driverId, driverDeliveries]) => {
                   const driver = driverDeliveries[0].driver;
                   return (
                     <Box key={driverId} sx={{ mb: 3 }}>
@@ -656,7 +785,7 @@ export default function DeliveryManagement() {
                           </TableHead>
                           <TableBody>
                             {driverDeliveries.map((delivery, index) => (
-                              <TableRow 
+                              <TableRow
                                 key={index}
                                 sx={{
                                   '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
@@ -692,6 +821,24 @@ export default function DeliveryManagement() {
               </Box>
             ))
           )}
+          
+          <TablePagination
+            rowsPerPageOptions={[3, 5, 10]}
+            component="div"
+            count={dateKeys.length}
+            rowsPerPage={completedRowsPerPage}
+            page={completedPage}
+            onPageChange={handleCompletedChangePage}
+            onRowsPerPageChange={handleCompletedChangeRowsPerPage}
+            sx={{
+              borderTop: '1px solid #e0e0e0',
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                fontSize: '14px',
+                fontWeight: 400,
+                color: '#666'
+              }
+            }}
+          />
         </Box>
       )}
 
@@ -700,21 +847,25 @@ export default function DeliveryManagement() {
         <DialogTitle>Driver Details</DialogTitle>
         <DialogContent>
           {selectedDriver && (
-            <Box sx={{ mt: 2 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ mt: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <Avatar
-                  src={`http://localhost:8000/${selectedDriver.driver_image}`}
-                  sx={{ width: 100, height: 100, mb: 1 }}
+                  src={previewImage}
+                  sx={{ width: 100, height: 100, mr: 2 }}
                   alt="Driver Avatar"
-                />
-                <Typography variant="h6" fontWeight="bold">
-                  {selectedDriver.first_name} {selectedDriver.last_name}
-                </Typography>
-                <Chip
-                  label={selectedDriver.status}
-                  color={statusColors[selectedDriver.status] || 'default'}
-                  sx={{ mt: 1 }}
-                />
+                >
+                  {selectedDriver.first_name.charAt(0)}
+                </Avatar>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h6" fontWeight="bold">
+                    {selectedDriver.first_name} {selectedDriver.last_name}
+                  </Typography>
+                  <Chip
+                    label={selectedDriver.status}
+                    color={statusColors[selectedDriver.status] || 'default'}
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
               </Box>
 
               <Grid container spacing={2}>
@@ -792,34 +943,30 @@ export default function DeliveryManagement() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
-                    label="Last Login"
+                    label="Vehicle Condition"
                     fullWidth
-                    value={
-                      selectedDriver.last_login_time
-                        ? new Date(selectedDriver.last_login_time).toLocaleString()
-                        : 'Never'
-                    }
+                    value={selectedDriver.vehicle || ''}
                     InputProps={{ readOnly: true }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-  {selectedDriver.id_proof ? (
-    <Button
-      variant="outlined"
-      fullWidth
-      onClick={() => handleDownloadIdProof(selectedDriver.id_proof)}
-    >
-      Download ID Proof
-    </Button>
-  ) : (
-    <TextField
-      label="ID Proof"
-      fullWidth
-      value="Not uploaded"
-      InputProps={{ readOnly: true }}
-    />
-  )}
-</Grid>
+                  {selectedDriver.id_proof ? (
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      onClick={() => handleDownloadIdProof(selectedDriver.id_proof)}
+                    >
+                      Download ID Proof
+                    </Button>
+                  ) : (
+                    <TextField
+                      label="ID Proof"
+                      fullWidth
+                      value="Not uploaded"
+                      InputProps={{ readOnly: true }}
+                    />
+                  )}
+                </Grid>
               </Grid>
             </Box>
           )}
@@ -830,7 +977,7 @@ export default function DeliveryManagement() {
             variant="contained"
             onClick={() => {
               setOpenViewDialog(false);
-              navigate(`/driveradd/${selectedDriver.did}`);
+              handleEditDriver(selectedDriver);
             }}
           >
             Edit
@@ -840,130 +987,233 @@ export default function DeliveryManagement() {
 
 
       {/* Edit Driver Dialog */}
-      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle>Edit Driver Details</DialogTitle>
         <DialogContent>
           {selectedDriver && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="First Name"
-                  name="first_name"
-                  value={editFormData.first_name || ''}
-                  onChange={handleEditFormChange}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  name="last_name"
-                  value={editFormData.last_name || ''}
-                  onChange={handleEditFormChange}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  name="email"
-                  value={editFormData.email || ''}
-                  onChange={handleEditFormChange}
-                  margin="normal"
-                  type="email"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Phone"
-                  name="phone"
-                  value={editFormData.phone || ''}
-                  onChange={handleEditFormChange}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Emergency Phone"
-                  name="emergency_phone"
-                  value={editFormData.emergency_phone || ''}
-                  onChange={handleEditFormChange}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Vehicle Type</InputLabel>
-                  <Select
-                    name="vehicle_type"
-                    value={editFormData.vehicle_type || ''}
+            <>
+              {updateError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {updateError}
+                </Alert>
+              )}
+              
+              {updateSuccess && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  Driver updated successfully!
+                </Alert>
+              )}
+              
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="First Name"
+                    name="first_name"
+                    value={editFormData.first_name || ''}
                     onChange={handleEditFormChange}
-                    label="Vehicle Type"
-                  >
-                    {vehicleTypes.map(type => (
-                      <MenuItem key={type} value={type}>{type}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Vehicle Number"
-                  name="vehicle_number"
-                  value={editFormData.vehicle_number || ''}
-                  onChange={handleEditFormChange}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="License Number"
-                  name="license_number"
-                  value={editFormData.license_number || ''}
-                  onChange={handleEditFormChange}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="License Expiry Date"
-                  name="license_expiry_date"
-                  type="date"
-                  value={editFormData.license_expiry_date || ''}
-                  onChange={handleEditFormChange}
-                  margin="normal"
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    name="status"
-                    value={editFormData.status || ''}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Last Name"
+                    name="last_name"
+                    value={editFormData.last_name || ''}
                     onChange={handleEditFormChange}
-                    label="Status"
-                  >
-                    {statusOptions.map(status => (
-                      <MenuItem key={status} value={status}>{status}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    value={editFormData.email || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                    type="email"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Phone"
+                    name="phone"
+                    value={editFormData.phone || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Emergency Phone"
+                    name="emergency_phone"
+                    value={editFormData.emergency_phone || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth margin="normal">
+                    <InputLabel>Vehicle Type</InputLabel>
+                    <Select
+                      name="vehicle_type"
+                      value={editFormData.vehicle_type || ''}
+                      onChange={handleEditFormChange}
+                      label="Vehicle Type"
+                    >
+                      {vehicleTypes.map(type => (
+                        <MenuItem key={type} value={type}>{type}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Vehicle Number"
+                    name="vehicle_number"
+                    value={editFormData.vehicle_number || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="License Number"
+                    name="license_number"
+                    value={editFormData.license_number || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="License Expiry Date"
+                    name="license_expiry_date"
+                    type="date"
+                    value={editFormData.license_expiry_date || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Date of Birth"
+                    name="date_of_birth"
+                    type="date"
+                    value={editFormData.date_of_birth || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="State"
+                    name="state"
+                    value={editFormData.state || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Country"
+                    name="country"
+                    value={editFormData.country || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Vehicle Condition"
+                    name="vehicle"
+                    value={editFormData.vehicle || ''}
+                    onChange={handleEditFormChange}
+                    margin="normal"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>Driver Image</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    {previewImage ? (
+                      <Avatar
+                        src={previewImage}
+                        sx={{ width: 80, height: 80, mr: 2 }}
+                      />
+                    ) : (
+                      <Avatar sx={{ width: 80, height: 80, mr: 2 }}>
+                        {selectedDriver.first_name.charAt(0)}
+                      </Avatar>
+                    )}
+                    <Button
+                      variant="outlined"
+                      component="label"
+                    >
+                      Upload Image
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={handleImageChange}
+                      />
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>ID Proof</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    {previewIdProof ? (
+                      <Avatar
+                        src={previewIdProof}
+                        sx={{ width: 80, height: 80, mr: 2 }}
+                        variant="rounded"
+                      />
+                    ) : (
+                      <Avatar sx={{ width: 80, height: 80, mr: 2, bgcolor: 'grey.300' }}>
+                        {/* <DescriptionIcon /> */}
+                      </Avatar>
+                    )}
+                    <Button
+                      variant="outlined"
+                      component="label"
+                    >
+                      Upload ID Proof
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*,.pdf"
+                        onChange={handleIdProofChange}
+                      />
+                    </Button>
+                  </Box>
+                </Grid>
               </Grid>
-            </Grid>
+            </>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleUpdateDriver}>Save Changes</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleUpdateDriver}
+            disabled={isUpdating}
+            startIcon={isUpdating ? <CircularProgress size={20} /> : null}
+          >
+            {isUpdating ? 'Updating...' : 'Save Changes'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

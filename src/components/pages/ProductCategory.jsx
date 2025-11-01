@@ -312,7 +312,7 @@ const handleDeleteConfirm = async () => {
           mb: 3,
         }}
       >
-        Product Category
+        Product Category Management
       </Typography>
 
       <Grid container spacing={2}>

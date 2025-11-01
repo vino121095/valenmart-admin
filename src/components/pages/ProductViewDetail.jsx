@@ -7,11 +7,25 @@ import {
   Button,
   Breadcrumbs,
   Link,
-  Chip
+  Chip,
+  Card,
+  CardContent,
+  CardMedia,
+  Divider,
+  IconButton,
+  Tooltip,
+  Avatar,
+  Stack
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import PriceCheckIcon from '@mui/icons-material/PriceCheck';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import ScaleIcon from '@mui/icons-material/Scale';
 import baseurl from '../ApiService/ApiService';
 
 const ViewProductDetail = () => {
@@ -26,40 +40,35 @@ const ViewProductDetail = () => {
     image: '',
     lastUpdated: ''
   });
-  
+
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch product details when component mounts
     fetchProductDetails();
   }, [id]);
 
   const fetchProductDetails = async () => {
     try {
-      // In a real application, fetch data from your API
       const response = await fetch(`${baseurl}/api/product/${id}`);
       const data = await response.json();
-      
+
       if (data && data.data) {
         const productData = data.data;
-        console.log('Product data received:', productData); // Debug log to see what's coming from API
-        
+
         // Handle season display properly
         let seasonDisplay = productData.season;
-        
-        // If season is empty or null, use a fallback
         if (!seasonDisplay || seasonDisplay === "") {
           seasonDisplay = productData.is_seasonal === true ? 'Seasonal' : 'All Season';
         }
-        
+
         setProduct({
           id: productData.pid,
           name: productData.product_name,
           description: productData.discription,
           weightKg: productData.unit,
           amount: productData.price,
-          season: productData.is_seasonal,
+          season: seasonDisplay,
           status: productData.is_active ? 'Available' : 'Unavailable',
           image: productData.product_image.replace(/\\/g, '/'),
           lastUpdated: new Date(productData.updatedAt).toLocaleDateString('en-US', {
@@ -83,7 +92,6 @@ const ViewProductDetail = () => {
   };
 
   const handleDelete = async () => {
-    // In a real application, send a DELETE request to your API
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         await fetch(`${baseurl}/api/product/${id}`, {
@@ -98,213 +106,255 @@ const ViewProductDetail = () => {
 
   return (
     <Box>
-      {/* Breadcrumbs */}
-      <Breadcrumbs 
-        separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00B074' }} />}
-        aria-label="breadcrumb"
-        sx={{ mb: 2 }}
-      >
-        <Link
-          underline="hover"
-          color="#00B074"
-          href="/dashboard"
-          sx={{ fontWeight: 500 }}
-        >
-          Dashboard
-        </Link>
-        <Link
-          underline="hover"
-          color="#00B074"
-          href="/products"
-          sx={{ fontWeight: 500 }}
-        >
-          Product Management
-        </Link>
-        <Typography color="text.primary" sx={{ fontWeight: 500 }}>
-          Product Details
-        </Typography>
-      </Breadcrumbs>
+      {/* Header Section */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
 
-      {/* Page Title */}
-      <Typography
-        variant="h5"
-        component="h1"
-        sx={{ fontWeight: 'bold', mb: 3 }}
-      >
-        Product Details
-      </Typography>
 
-      {/* Back Button */}
-      <Button
-        variant="contained"
-        startIcon={<ArrowBackIcon />}
-        onClick={handleBack}
-        sx={{
-          mb: 3,
-          bgcolor: '#f5f5f5',
-          color: '#333',
-          '&:hover': { bgcolor: '#e0e0e0' },
-          textTransform: 'none',
-          fontWeight: 'medium',
-          boxShadow: 'none'
-        }}
-      >
-        Back
-      </Button>
-
-      {/* Product Details Card */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          borderRadius: 2,
-          border: '1px solid #e0e0e0',
-          bgcolor: '#fff'
-        }}
-      >
-        <Grid container spacing={4}>
-          {/* Product Image */}
-          <Grid item xs={12} md={4}>
-            <img
-              src={`${baseurl}/${product.image}`}
-              alt={product.name}
-              style={{
-                width: '100%',
-                height: 'auto',
-                borderRadius: 8,
-                maxHeight: '300px',
-                objectFit: 'cover'
-              }}
-              onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/300x300?text=Product+Image';
-              }}
-            />
-          </Grid>
-
-          {/* Product Information */}
-          <Grid item xs={12} md={8}>
-            <Typography variant="h4" component="h2" gutterBottom>
-              {product.name}
+          <Breadcrumbs
+            separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00B074' }} />}
+            aria-label="breadcrumb"
+          >
+            <Link
+              underline="hover"
+              color="#00B074"
+              href="/dashboard"
+            >
+              Dashboard
+            </Link>
+            <Link
+              underline="hover"
+              color="#00B074"
+              href="/products"
+            >
+              Product Management
+            </Link>
+            <Typography color="#666666">
+              Product Details
             </Typography>
+          </Breadcrumbs>
+        </Box>
+      </Box>
+      <Typography variant="h5" fontWeight="bold" color="#333333">
+        Product Details
+      </Typography><br /> 
 
-            <Grid container spacing={2} sx={{ mt: 2 }}>
-              <Grid item xs={4}>
-                <Typography variant="body2" color="text.secondary">
-                  Product ID :
-                </Typography>
-              </Grid>
-              <Grid item xs={8}>
-                <Typography variant="body1" fontWeight="medium">
-                  {product.id}
-                </Typography>
-              </Grid>
-
-              <Grid item xs={4}>
-                <Typography variant="body2" color="text.secondary">
-                  Weight :
-                </Typography>
-              </Grid>
-              <Grid item xs={8}>
-                <Typography variant="body1" fontWeight="medium">
-                  {product.weightKg} Kg
-                </Typography>
-              </Grid>
-
-              <Grid item xs={4}>
-                <Typography variant="body2" color="text.secondary">
-                  Price :
-                </Typography>
-              </Grid>
-              <Grid item xs={8}>
-                <Typography variant="body1" fontWeight="medium">
-                  {product.amount}
-                </Typography>
-              </Grid>
-
-              <Grid item xs={4}>
-                <Typography variant="body2" color="text.secondary">
-                  Season :
-                </Typography>
-              </Grid>
-              <Grid item xs={8}>
-                <Typography variant="body1" fontWeight="medium">
-                  {product.season}
-                </Typography>
-              </Grid>
-
-              <Grid item xs={4}>
-                <Typography variant="body2" color="text.secondary">
-                  Stock Status :
-                </Typography>
-              </Grid>
-              <Grid item xs={8}>
-                <Chip
-                  label={product.status}
+      {/* Main Content */}
+      <Card elevation={2} sx={{ borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Grid container spacing={4}>
+            {/* Left Column - Product Image */}
+            <Grid item xs={12} md={4}>
+              <Card elevation={1} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <CardMedia
+                  component="img"
+                  image={`${baseurl}/${product.image}`}
+                  alt={product.name}
                   sx={{
-                    backgroundColor: product.status === 'Available' ? '#4CAF5020' : '#F4433620',
-                    color: product.status === 'Available' ? '#4CAF50' : '#F44336',
-                    borderRadius: '16px',
-                    fontSize: '0.875rem',
-                    fontWeight: 'medium'
+                    width: '100%',
+                    height: 200,
+                    objectFit: 'cover'
+                  }}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/300x250?text=Product+Image';
                   }}
                 />
-              </Grid>
-
-              <Grid item xs={4}>
-                <Typography variant="body2" color="text.secondary">
-                  Last Updated :
-                </Typography>
-              </Grid>
-              <Grid item xs={8}>
-                <Typography variant="body1" fontWeight="medium">
-                  {product.lastUpdated}
-                </Typography>
-              </Grid>
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    {product.name}
+                  </Typography>
+                  <Chip
+                    label={product.status}
+                    size="small"
+                    sx={{
+                      backgroundColor: product.status === 'Available' ? '#e8f5e9' : '#ffebee',
+                      color: product.status === 'Available' ? '#2e7d32' : '#c62828',
+                      fontWeight: 'normal'
+                    }}
+                  />
+                </CardContent>
+              </Card>
             </Grid>
 
-            {/* Action Buttons */}
-            <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
-              <Button
-                variant="contained"
-                onClick={handleEdit}
-                sx={{
-                  bgcolor: '#00B074',
-                  '&:hover': { bgcolor: '#009565' },
-                  px: 4
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleDelete}
-                sx={{
-                  borderColor: '#F44336',
-                  color: '#F44336',
-                  '&:hover': {
-                    bgcolor: '#F4433610',
-                    borderColor: '#F44336'
-                  },
-                  px: 4
-                }}
-              >
-                Delete
-              </Button>
-            </Box>
-          </Grid>
-        </Grid>
+            {/* Right Column - Product Details */}
+            <Grid item xs={12} md={8}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Product Information
+                </Typography>
 
-        {/* Product Description Section */}
-        <Box sx={{ mt: 6 }}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
-            Product Description
-          </Typography>
-          <Typography variant="body1" paragraph>
-            {product.description || "No description available."}
-          </Typography>
-        </Box>
-      </Paper>
+                <Box>
+                  <Tooltip title="Edit Product">
+                    <IconButton
+                      onClick={handleEdit}
+                      sx={{
+                        mr: 1,
+                        bgcolor: '#00B074',
+                        color: 'white',
+                        '&:hover': { bgcolor: '#009565' }
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+
+                  <Tooltip title="Delete Product">
+                    <IconButton
+                      onClick={handleDelete}
+                      sx={{
+                        bgcolor: '#F44336',
+                        color: 'white',
+                        '&:hover': { bgcolor: '#d32f2f' }
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+
+              <Divider sx={{ mb: 3 }} />
+
+              {/* Product Details - 3 Column Layout */}
+              <Grid container spacing={3}>
+                {/* First Row */}
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Product ID
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 0 }}>
+                      {product.id}
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Weight
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 0 }}>
+                      {product.weightKg} Kg
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Price
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 0, color: '#00B074' }}>
+                      {product.amount}
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                {/* Second Row */}
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Season
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 0 }}>
+                      {product.season}
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Stock Status
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 0 }}>
+                      <Chip
+                        label={product.status}
+                        size="small"
+                        sx={{
+                          backgroundColor: product.status === 'Available' ? '#e8f5e9' : '#ffebee',
+                          color: product.status === 'Available' ? '#2e7d32' : '#c62828',
+                          fontWeight: 'normal'
+                        }}
+                      />
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Last Updated
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 0 }}>
+                      {product.lastUpdated}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              {/* Product Description */}
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="body2" fontWeight="bold" gutterBottom>
+                  Product Description
+                </Typography>
+                <Paper elevation={0} sx={{ p: 3, borderRadius: 2, bgcolor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
+                  <Typography variant="body2">
+                    {product.description || "No description available."}
+                  </Typography>
+                </Paper>
+              </Box>
+
+              {/* Action Buttons */}
+              <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  onClick={handleBack}
+                  sx={{
+                    borderColor: '#00B074',
+                    color: '#00B074',
+                    '&:hover': {
+                      bgcolor: '#f5f5f5',
+                      borderColor: '#00B074'
+                    },
+                    px: 3,
+                    py: 1,
+                    fontWeight: 'normal'
+                  }}
+                >
+                  Back to Products
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleEdit}
+                  sx={{
+                    bgcolor: '#00B074',
+                    '&:hover': { bgcolor: '#009565' },
+                    px: 3,
+                    py: 1,
+                    fontWeight: 'normal'
+                  }}
+                >
+                  Edit Product
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
     </Box>
   );
 };

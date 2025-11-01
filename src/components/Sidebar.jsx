@@ -40,15 +40,112 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
 
   const sidebarItems = [
     { id: 1, text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-    { id: 2, text: "Customer Order Management", icon: <ShoppingCartIcon />, path: "/customer-orders" },
-    { id: 3, text: "Procurement Order Management", icon: <BusinessCenterIcon />, path: "/procurement" },
-    { id: 4, text: "Product Management", icon: <Inventory2Icon />, path: "/products" },
-    { id: 5, text: "Product Category", icon: <Inventory2Icon />, path: "/product-category"},
+    { 
+      id: 2, 
+      text: "Customer Order Management", 
+      icon: <ShoppingCartIcon />, 
+      path: "/customer-orders",
+      relatedPaths: [
+        "/customer-orders",
+        "/order-view",
+        "/track-order"
+      ]
+    },
+    { 
+      id: 3, 
+      text: "Procurement Order Management", 
+      icon: <BusinessCenterIcon />, 
+      path: "/procurement",
+      relatedPaths: [
+        "/procurement",
+        "/create-procurement",
+        "/procurement-view",
+      ]
+    },
+    { 
+      id: 4, 
+      text: "Product Management", 
+      icon: <Inventory2Icon />, 
+      path: "/products",
+      relatedPaths: [
+        "/products",
+        "/add-product",
+        "/view-product",
+        "/edit-product"
+      ]
+    },
+    { 
+      id: 5, 
+      text: "Product Category", 
+      icon: <Inventory2Icon />, 
+      path: "/product-category",
+      relatedPaths: [
+        "/product-category",
+        "/create-category",
+        "/view-category",
+        "/edit-category"
+      ]
+    },
     { id: 6, text: "Inventory Management", icon: <InventoryIcon />, path: "/inventory" },
-    { id: 7, text: "Vendor/Farmer Management", icon: <PeopleIcon />, path: "/vendors" },
-    { id: 8, text: "Driver & Delivery Management", icon: <LocalShippingIcon />, path: "/delivery" },
-    { id: 9, text: "Customer Management", icon: <PersonIcon />, path: "/customer" },
-    { id: 10, text: "Invoice & Payment Tracking", icon: <ReceiptIcon />, path: "/invoice" },
+    { 
+      id: 7, 
+      text: "Vendor/Farmer Management", 
+      icon: <PeopleIcon />, 
+      path: "/vendors",
+      relatedPaths: [
+        "/vendors",
+        "/vendor-registration",
+        "/vendor-view",
+        "/vendor-edit",
+        "/vendoractive",
+        "/vendorperform",
+        "/vendorhistory"
+      ]
+    },
+    { 
+      id: 8, 
+      text: "Driver & Delivery Management", 
+      icon: <LocalShippingIcon />, 
+      path: "/delivery",
+      relatedPaths: [
+        "/delivery",
+        "/driveradd",
+        "/drivertask",
+        "/drivertrack",
+        "/driverlog",
+        "/driver"
+      ]
+    },
+    { 
+      id: 9, 
+      text: "Customer Management", 
+      icon: <PersonIcon />, 
+      path: "/customer",
+      relatedPaths: [
+        "/customer",
+        "/create-customer",
+        "/customerview1",
+        "/customerview2",
+        "/customerview3",
+        "/customer-edit"
+      ]
+    },
+    { 
+      id: 10, 
+      text: "Invoice & Payment Tracking", 
+      icon: <ReceiptIcon />, 
+      path: "/invoice",
+      relatedPaths: [
+        "/invoice",
+        "/invoice-view",
+        "/invoicehistory",
+        "/vendor-invoice",
+        "/vendor-invoice-view",
+        "/vendor-invoice-history",
+        "/driver-invoice",
+        "/driver-invoice-view"
+      ]
+    },
     { id: 11, text: "Reports & Analytics", icon: <BarChartIcon />, path: "/report-analysis" },
     { id: 12, text: "Settings & Configuration", icon: <SettingsIcon />, path: "/settings" },
   ];
@@ -57,10 +154,12 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
     <Box sx={{ overflow: 'auto', height: '100%' }}>
       <List sx={{ pt: '64px' }}>
         {sidebarItems.map((item) => {
-          const isActive =
-            currentPath === item.path ||
-            (item.path === "/procurement" &&
-              ["/procurement", "/create-procurement", "/assign-driver"].includes(currentPath));
+          // Check if current path matches the item's path or starts with any of its related paths
+          const isActive = 
+            (item.relatedPaths && item.relatedPaths.some(path => 
+              currentPath === path || currentPath.startsWith(path + '/')
+            )) ||
+            currentPath === item.path;
 
           return (
             <ListItem

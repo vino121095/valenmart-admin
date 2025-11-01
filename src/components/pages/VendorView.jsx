@@ -10,12 +10,27 @@ import {
   Breadcrumbs,
   Link,
   CircularProgress,
+  Card,
+  CardContent,
+  CardMedia,
+  IconButton,
+  Tooltip,
+  Avatar,
+  Stack
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import PersonIcon from "@mui/icons-material/Person";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import BusinessIcon from "@mui/icons-material/Business";
 import baseurl from '../ApiService/ApiService';
 
-export default function VendorView() {
+const VendorView = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -33,9 +48,6 @@ export default function VendorView() {
           throw new Error("Failed to fetch vendor data");
         }
         const json = await response.json();
-
-        // Debug: log API response
-        // console.log("API data:", json.data);
 
         // Check if json.data is array or object
         if (Array.isArray(json.data)) {
@@ -62,8 +74,29 @@ export default function VendorView() {
     fetchVendor();
   }, [id]);
 
+  const handleBack = () => {
+    navigate('/vendors');
+  };
+
   const handleEdit = () => {
     navigate(`/vendor-edit/${id}`);
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this vendor?')) {
+      try {
+        const response = await fetch(`${baseurl}/api/vendor/${id}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) {
+          throw new Error("Failed to delete vendor");
+        }
+        navigate('/vendors');
+      } catch (error) {
+        console.error('Error deleting vendor:', error);
+        alert('Failed to delete vendor. Please try again.');
+      }
+    }
   };
 
   if (loading) {
@@ -84,138 +117,288 @@ export default function VendorView() {
 
   return (
     <Box>
-      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
-        <Link underline="hover" href="/">Dashboard</Link>
-        <Link underline="hover" href="/vendors">Vendor/Farmar Management</Link>
-        <Typography color="text.primary">View Vendor/Farmar Management</Typography>
-      </Breadcrumbs>
-
-      <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: "auto" }}>
-        <Box
-          sx={{
-            mb: 2,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ color: "#00A67E", fontWeight: "bold" }}
+      {/* Header Section */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Breadcrumbs
+            separator={<NavigateNextIcon fontSize="small" sx={{ color: '#00B074' }} />}
+            aria-label="breadcrumb"
           >
-            {vendorData.type} Information
-          </Typography>
-          <Chip
-            label={vendorData.status}
-            sx={{
-              backgroundColor:
-                vendorData.status === "Active" ? "#e6f7ed" : "#ffebee",
-              color: vendorData.status === "Active" ? "#00A67E" : "#f44336",
-              fontWeight: "medium",
-            }}
-          />
+            <Link
+              underline="hover"
+              color="#00B074"
+              href="/dashboard"
+            >
+              Dashboard
+            </Link>
+            <Link
+              underline="hover"
+              color="#00B074"
+              href="/vendors"
+            >
+              Vendor Management
+            </Link>
+            <Typography color="#666666">
+              Vendor Details
+            </Typography>
+          </Breadcrumbs>
         </Box>
+      </Box>
+      
+      <Typography variant="h5" fontWeight="bold" color="#333333">
+        Vendor Details
+      </Typography><br /> 
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Contact Person / Company Name
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {vendorData.contact_person || "N/A"}
-            </Typography>
+      {/* Main Content */}
+      <Card elevation={2} sx={{ borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Grid container spacing={4}>
+            {/* Left Column - Vendor Profile */}
+            {/* <Grid item xs={12} md={4}>
+              <Card elevation={1} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <CardMedia
+                  component="div"
+                  sx={{
+                    width: '100%',
+                    height: 200,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#f5f5f5'
+                  }}
+                >
+                  <Avatar 
+                    sx={{ 
+                      width: 120, 
+                      height: 120, 
+                      bgcolor: '#00B074',
+                      fontSize: '3rem'
+                    }}
+                  >
+                    {vendorData.contact_person ? vendorData.contact_person.charAt(0).toUpperCase() : 'V'}
+                  </Avatar>
+                </CardMedia>
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    {vendorData.contact_person || "Vendor"}
+                  </Typography>
+                  <Chip
+                    label={vendorData.status}
+                    size="small"
+                    sx={{
+                      backgroundColor: vendorData.status === "Active" ? '#e8f5e9' : '#ffebee',
+                      color: vendorData.status === "Active" ? '#2e7d32' : '#c62828',
+                      fontWeight: 'normal'
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </Grid> */}
+
+            {/* Right Column - Vendor Details */}
+            <Grid item xs={12} md={8}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Vendor Information
+                </Typography>
+
+                <Box>
+                  <Tooltip title="Edit Vendor">
+                    <IconButton
+                      onClick={handleEdit}
+                      sx={{
+                        mr: 1,
+                        bgcolor: '#00B074',
+                        color: 'white',
+                        '&:hover': { bgcolor: '#009565' }
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+
+                  <Tooltip title="Delete Vendor">
+                    <IconButton
+                      onClick={handleDelete}
+                      sx={{
+                        bgcolor: '#F44336',
+                        color: 'white',
+                        '&:hover': { bgcolor: '#d32f2f' }
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+
+              <Divider sx={{ mb: 3 }} />
+
+              {/* Vendor Details - 3 Column Layout */}
+              <Grid container spacing={3}>
+                {/* First Row */}
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <PersonIcon fontSize="small" sx={{ mr: 1, color: '#00B074' }} />
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Contact Person
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 3 }}>
+                      {vendorData.contact_person || "N/A"}
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <BusinessIcon fontSize="small" sx={{ mr: 1, color: '#00B074' }} />
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Type
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 3 }}>
+                      {vendorData.type}
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Status
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 0 }}>
+                      <Chip
+                        label={vendorData.status}
+                        size="small"
+                        sx={{
+                          backgroundColor: vendorData.status === "Active" ? '#e8f5e9' : '#ffebee',
+                          color: vendorData.status === "Active" ? '#2e7d32' : '#c62828',
+                          fontWeight: 'normal'
+                        }}
+                      />
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                {/* Second Row */}
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <EmailIcon fontSize="small" sx={{ mr: 1, color: '#00B074' }} />
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Email
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 3 }}>
+                      {vendorData.email}
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <PhoneIcon fontSize="small" sx={{ mr: 1, color: '#00B074' }} />
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Phone
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 3 }}>
+                      {vendorData.phone}
+                    </Typography>
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} sm={4}>
+                  <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', height: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold" color="#000000">
+                        Vendor ID
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ ml: 0 }}>
+                      {vendorData.vendor_id}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              {/* Address Details */}
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="body2" fontWeight="bold" gutterBottom>
+                  Address Details
+                </Typography>
+                <Paper elevation={0} sx={{ p: 3, borderRadius: 2, bgcolor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                        <LocationOnIcon fontSize="small" sx={{ mr: 1, mt: 0.2, color: '#00B074' }} />
+                        <Typography variant="body2">
+                          {vendorData.address}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" fontWeight="bold">City</Typography>
+                      <Typography variant="body2">{vendorData.city}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" fontWeight="bold">State/Province</Typography>
+                      <Typography variant="body2">{vendorData.state}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" fontWeight="bold">Pincode</Typography>
+                      <Typography variant="body2">{vendorData.pincode}</Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Box>
+
+              {/* Action Buttons */}
+              <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  onClick={handleBack}
+                  sx={{
+                    borderColor: '#00B074',
+                    color: '#00B074',
+                    '&:hover': {
+                      bgcolor: '#f5f5f5',
+                      borderColor: '#00B074'
+                    },
+                    px: 3,
+                    py: 1,
+                    fontWeight: 'normal'
+                  }}
+                >
+                  Back to Vendors
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleEdit}
+                  sx={{
+                    bgcolor: '#00B074',
+                    '&:hover': { bgcolor: '#009565' },
+                    px: 3,
+                    py: 1,
+                    fontWeight: 'normal'
+                  }}
+                >
+                  Edit Vendor
+                </Button>
+              </Box>
+            </Grid>
           </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Type
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {vendorData.type}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Email Address
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {vendorData.email}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Phone Number
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {vendorData.phone}
-            </Typography>
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 3 }} />
-
-        <Typography
-          variant="h6"
-          sx={{ color: "#00A67E", fontWeight: "bold", mb: 2 }}
-        >
-          Address Details
-        </Typography>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Address
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {vendorData.address}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2" color="text.secondary">
-              City
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {vendorData.city}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2" color="text.secondary">
-              State/Province
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {vendorData.state}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Pincode
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {vendorData.pincode}
-            </Typography>
-          </Grid>
-        </Grid>
-
-        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            variant="contained"
-            onClick={handleEdit}
-            sx={{
-              bgcolor: "#00A67E",
-              "&:hover": {
-                bgcolor: "#007a5e",
-              },
-            }}
-          >
-            Edit Details
-          </Button>
-        </Box>
-      </Paper>
+        </CardContent>
+      </Card>
     </Box>
   );
-}
+};
+
+export default VendorView;

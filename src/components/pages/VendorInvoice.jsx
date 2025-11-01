@@ -21,7 +21,8 @@ import {
     InputLabel,
     CircularProgress,
     Breadcrumbs,
-    Link
+    Link,
+    TablePagination
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -64,6 +65,10 @@ export default function ProcurementInvoiceManagement() {
 
     // Sorting state
     const [orderDirection, setOrderDirection] = useState({});
+    
+    // Pagination state
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Fetch procurement data on mount
     useEffect(() => {
@@ -137,6 +142,7 @@ export default function ProcurementInvoiceManagement() {
         }
 
         setFilteredProcurements(result);
+        setPage(0); // Reset to first page when filters change
     };
 
     const handleResetFilters = () => {
@@ -144,6 +150,7 @@ export default function ProcurementInvoiceManagement() {
         setStartDate('');
         setEndDate('');
         setFilteredProcurements(procurements);
+        setPage(0); // Reset to first page when filters are reset
     };
 
     // Calculate vendor invoice amount for a procurement entry:
@@ -261,6 +268,19 @@ export default function ProcurementInvoiceManagement() {
             <ArrowUpwardIcon fontSize="small" /> :
             <ArrowDownwardIcon fontSize="small" />;
     };
+
+    // Pagination handlers
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    // Calculate paginated data
+    const paginatedProcurements = filteredProcurements.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     if (loading) {
         return (
@@ -473,7 +493,7 @@ export default function ProcurementInvoiceManagement() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredProcurements.map((proc, index) => {
+                        {paginatedProcurements.map((proc, index) => {
                             const vendorAmt = calculateVendorAmount(proc);
                             const isReceived = isPaymentReceived(proc.status);
                             return (
@@ -569,32 +589,23 @@ export default function ProcurementInvoiceManagement() {
                         )}
                     </TableBody>
                 </Table>
-
-                {/* Simple pagination placeholder */}
-                <Box
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={filteredProcurements.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
                     sx={{
-                        p: 2,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap'
+                        borderTop: '1px solid #e0e0e0',
+                        '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: '#666'
+                        }
                     }}
-                >
-                    <Typography variant="body2">
-                        Showing {filteredProcurements.length} entries
-                    </Typography>
-                    <Stack direction="row" spacing={1}>
-                        <Button variant="outlined" size="small" disabled>
-                            Previous
-                        </Button>
-                        <Button variant="contained" size="small" color="primary">
-                            1
-                        </Button>
-                        <Button variant="outlined" size="small" disabled>
-                            Next
-                        </Button>
-                    </Stack>
-                </Box>
+                />
             </TableContainer>
         </Box>
     );

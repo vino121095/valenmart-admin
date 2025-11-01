@@ -9,13 +9,16 @@ import {
   TableBody,
   Paper,
   CircularProgress,
-  Box
+  Box,
+  Breadcrumbs,
+  Link
 } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import baseurl from '../ApiService/ApiService';
 
 const DriverDetails = () => {
   const { id: driverId } = useParams();
+  const navigate = useNavigate();
   const [completedTodayList, setCompletedTodayList] = useState([]);
   const [driverInfo, setDriverInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,14 +27,11 @@ const DriverDetails = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch deliveries
         const deliveryResponse = await fetch(baseurl + '/api/delivery/all');
-        if (!deliveryResponse.ok) {
-          throw new Error('Failed to fetch deliveries');
-        }
+        if (!deliveryResponse.ok) throw new Error('Failed to fetch deliveries');
         const deliveryData = await deliveryResponse.json();
-        
-        // Fetch driver info if driverId is provided
+
+        // Fetch driver info
         if (driverId) {
           const driverResponse = await fetch(baseurl + '/api/driver-details/all');
           if (driverResponse.ok) {
@@ -40,20 +40,18 @@ const DriverDetails = () => {
             setDriverInfo(driver);
           }
         }
-        
-        // Filter for today's completed deliveries
+
         const today = new Date().toISOString().split('T')[0];
-        let todayCompleted = deliveryData.filter(delivery => 
-          delivery.date === today && delivery.status === 'Completed'
+        let todayCompleted = deliveryData.filter(
+          delivery => delivery.date === today && delivery.status === 'Completed'
         );
-        
-        // If driverId is provided, filter for specific driver
+
         if (driverId) {
-          todayCompleted = todayCompleted.filter(delivery => 
-            delivery.driver?.did === parseInt(driverId)
+          todayCompleted = todayCompleted.filter(
+            delivery => delivery.driver?.did === parseInt(driverId)
           );
         }
-        
+
         setCompletedTodayList(todayCompleted);
       } catch (err) {
         setError(err.message);
@@ -65,7 +63,6 @@ const DriverDetails = () => {
     fetchData();
   }, [driverId]);
 
-  // Calculate total charges
   const totalCharges = completedTodayList.reduce((sum, delivery) => {
     return sum + (parseFloat(delivery.charges) || 0);
   }, 0);
@@ -87,16 +84,31 @@ const DriverDetails = () => {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <Typography variant="h5" gutterBottom>
+    <div>
+      {/* ✅ Breadcrumbs Section */}
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link underline="hover" color="#00A67E" sx={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+          Dashboard
+        </Link>
+        <Link underline="hover" color="#00A67E" sx={{ cursor: 'pointer' }} onClick={() => navigate('/delivery')}>
+          Driver Management
+        </Link>
+        <Typography color="text.primary">
+          Completed Deliveries
+        </Typography>
+      </Breadcrumbs>
+
+      {/* ✅ Page Title */}
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
         {driverInfo ? `${driverInfo.first_name} ${driverInfo.last_name}'s` : 'Today\'s'} Completed Deliveries
       </Typography>
+
       {driverInfo && (
         <Typography variant="subtitle1" color="text.secondary" gutterBottom>
           Vehicle: {driverInfo.vehicle_number} | Status: {driverInfo.status}
         </Typography>
       )}
-      
+
       {completedTodayList.length === 0 ? (
         <Typography variant="body1" mt={2}>
           No completed deliveries for today.
@@ -127,7 +139,7 @@ const DriverDetails = () => {
                   <TableCell>₹{delivery.charges}</TableCell>
                 </TableRow>
               ))}
-              {/* Total charges row */}
+              {/* Total Charges Row */}
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                 <TableCell colSpan={4} align="right">
                   <strong>Total Charges:</strong>
